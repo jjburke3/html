@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>La Liga Port Lodge</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<style>
+		tr.avail td {
+			padding-top: 15px;
+			padding-bottom: 15px;
+		}
+		tr.notAvail td {
+			padding-top: 2px;
+			padding-bottom: 2px;
+		}
+		
+		/* pop-up location is based on window (used to locate to mouse position), and width and height are determined by contents*/
+ #tooltip {
+        position: fixed;
+        width: auto;
+        height: auto;
+        padding: 10px;
+		padding-left: 25px;
+        background-color: #E6DEDC;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+		opacity: .95;
+}
+
+	.minWidth {
+		min-width: 500px;
+	}
+
+#tooltipTable {
+	border-color: black;
+}
+
+
+#tooltipTable td {
+	padding: 5px;
+	}
+	
+	.hidden {
+		display: none;
+	}
+	
+	</style>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<h1>La Liga Port Lodge</h1>
+	<table id="playersTable" class='table table-hover table-striped'>
+		<thead style="background-color:white;">
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<!-- this div is the pop up on cell mouse over -->
+	<div id="tooltip" class="hidden"></div>
+	<script>
+	
+		var posColors = {'RB' : 'lightblue',
+						 'QB' : 'plum',
+						 'WR' : 'lightgreen',
+						 'TE' : 'pink',
+						 'K' : 'orange',
+						 'D/ST' : 'lightgrey'}
+						 
+		var depthCharts = d3.json("php/charts.php").then(function(chartData) {
+						 
+		var jsonProjected = d3.json("php/proj.php").then(function(projData) {
+	
+		var d3Champs = d3.json("php/draftCheatSheet.php").then(function(data) {
+			var columnHeads = ['Rank','Rank Left',
+				'Average Rank','Player','Position','Team','Prior Year Teams','Projected Points','Prior Year Points','Age','Experience','Bye','Depth Chart Position','Selected'
+			]
+			var ths = d3.select("#playersTable").selectAll("thead")
+				.append("tr")
+				.selectAll("th")
+				.data(columnHeads)
+				.enter()
+				.append("th")
+					.text(function(d) {return d;});
+			
+			var trs = d3.select("#playersTable").select("tbody")
+						.selectAll("tr:not(.perm)")
+						.data(data)
+						.enter()
+						.append("tr")
+						.attr("team",function(d) {return d.team;})
+						.attr("averageRank",function(d) {return d.averageRank;})
+						.attr("averageADP",function(d) {return d.averageADP;})
+						.attr("averagePosRank",function(d) {return d.averagePosRank;})
+						.attr("espnRank",function(d) {return d.espnRank;})
+						.attr("ffRank",function(d) {return d.ffDataRank;})
+						.attr("ffaRank",function(d) {return d.ffaRank;})
+						.attr("ffaECRRank",function(d) {return d.ffaECR;})
+						.attr("calcADP",function(d) {return d.calcADP;})
+						.attr("ffADP",function(d) {return d.ffDataADP;})
+						.attr("ffPosRank",function(d) {return d.ffDataPosRank;})
+						.attr("ffaPosRank",function(d) {return d.ffaPosRank;})
+						.attr("ffaECRPosRank",function(d) {return d.ffaPosECR;})
+						.attr("playerPosition",function(d) {return d.position;})
+						.attr("player",function(d) {return d.player;})
+						.attr("selected",function(d) {return d.selected;})
+						.style("background-color",function(d) {
+						if(d.selected=="N") { 
+							return posColors[d.position];
+						} else {return 'red';}
+						})
+						.attr("class",function(d) {return d.selected=="N"?"avail":"notAvail";});
+						
+			trs.append("td")
+				.text(function(d,i) {return i + 1;});
+			var pickedPlayers = 0;
+			var pickedCells = trs.append("td")
+				.text(function(d,i) {
+				if(d.selected!='N' ) {
+					pickedPlayers += 1;
+					return '';
+				} else {
+				return i + 1 - pickedPlayers;
+				}});
+				
+			trs.append("td")
+				.text(function(d) {return d.averageRank;})
+				.on("mousemove",function(d) {
+					var docWidth = document.documentElement.clientWidth;
+					var docHeight = window.innerHeight;
+					d3.select("#tooltip").classed("hidden",false).classed('minWidth',false)
+						.style("left", function(d) {
+							var divWidth = d3.select(this).style("width").slice(0,-2);
+							return d3.min([d3.event.pageX,docWidth-divWidth]) + "px";})
+						.style("top", function(d) {
+							var divHeight = d3.select(this).style("height").slice(0,-2);
+							return d3.min([docHeight-divHeight,d3.event.pageY]) + "px";})
+						.selectAll("*").remove();
+					var parentEl = d3.select(this.parentElement);
+						
+					d3.select("#tooltip").append("text").text(parentEl.attr("player"));
+					
+					var table = d3.select("#tooltip")
+						.append("table").attr("class","table-bordered");
+						
+					var rankings = [
+						{'ranking' : 'Average Rank', 'value' : 'averageRank'},
+						{'ranking' : 'Average ADP', 'value' : 'averageADP'},
+						{'ranking' : 'Average Pos Rank', 'value' : 'averagePosRank'},
+						{'ranking' : 'ESPN Rank', 'value' : 'espnRank'},
+						{'ranking' : 'FF Data Rank', 'value' : 'ffRank'},
+						{'ranking' : 'FFA Rank', 'value' : 'ffaRank'},
+						{'ranking' : 'FFA ECR Rank', 'value' : 'ffaECRRank'},
+						{'ranking' : 'Cacl ADP', 'value' : 'calcADP'},
+						{'ranking' : 'FF Data ADP', 'value' : 'ffADP'},
+						{'ranking' : 'FF Data Pos Rank', 'value' : 'ffPosRank'},
+						{'ranking' : 'FFA Pos Rank', 'value' : 'ffaPosRank'},
+						{'ranking' : 'FFA ECR Pos Rank', 'value' : 'ffaECRPosRank'}
+					]
+						
+				
+					var tbody = table.append("tbody");
+					
+					var tr = tbody.selectAll("tr")
+						.data(rankings)
+						.enter()
+						.append("tr");
+						
+					tr.append("th").text(function(d) {return d.ranking;});
+					tr.append("td").text(function(d) {
+					return parentEl.attr(d.value);});
+				})
+				.on("mouseout",function(d) {
+					d3.select("#tooltip").classed("hidden",true);
+				});
+				
+			trs.append("td")
+				.text(function(d) {return d.player.split("_").join("'");});
+				
+			trs.append("td")
+				.text(function(d) {return d.position;});
+				
+			trs.append("td")
+				.text(function(d) {return d.team;});
+				
+			trs.append("td")
+				.text(function(d) {return d.lastYearTeams;});
+				
+			trs.append("td")
+				.text(function(d) {return d.projProjected;})
+				.on("mousemove",function(d) {
+					var docWidth = document.documentElement.clientWidth;
+					var docHeight = document.documentElement.clientHeight;
+					d3.select("#tooltip").classed("hidden",false)
+						.style("left", function(d) {
+							var divWidth = d3.select(this).style("width").slice(0,-2);
+							return d3.min([d3.event.pageX,docWidth-divWidth]) + "px";})
+						.style("top", function(d) {
+							var divHeight = d3.select(this).style("height").slice(0,-2);
+							return d3.min([docHeight-divHeight,d3.event.pageY]) + "px";})
+						.selectAll("*").remove();
+					var parentEl = d3.select(this.parentElement);
+						
+					d3.select("#tooltip").append("text").style("display","block").text(parentEl.attr("player"));
+					var height = 600;
+					var width = 400;
+					var margin = {'top' : 10, 'bottom' : 20, 'right' : 5, 'left' : 25};
+					
+					
+					var svg = d3.select("#tooltip").append("svg")
+						.attr("class","svg")
+						.attr("height",height + margin.top + margin.bottom)
+						.attr("width",width + margin.left + margin.right)
+						.append("g")
+							.attr("transform","translate("+margin.left+","+margin.top+")");
+							
+					var data1 = projData.filter(function(d) {return d.projPosition == parentEl.attr("playerPosition");})
+						.sort(function(a, b) {return +b.projProjected - +a.projProjected;});
+					console.log(data1);
+					
+					var xScale = d3.scaleLinear()
+						.range([0,width])
+						.domain([0,d3.max(data1,function(d) {return +d.projCeiling;})]);
+						
+					var yScale = d3.scaleLinear()
+						.range([height,0])
+						.domain([data1.length,0]);
+						
+					var xAxis = d3.axisBottom()
+						.scale(xScale);
+					
+					var yAxis = d3.axisLeft()
+						.scale(yScale);
+						
+					svg.append('g')
+						.attr("class","x axis")
+						.attr("transform","translate(0,"+height+")")
+						.call(xAxis);
+						
+					svg.append('g')
+						.attr("class","y axis")
+						.call(yAxis);
+						
+					var dataAppend = svg.selectAll(".dot")
+						.data(data1);
+						
+					console.log(data1);
+					var midPoints = dataAppend
+						.enter()
+						.append("circle")
+						.attr("r",function(d) {return d.projPlayer == parentEl.attr("player")?5:3;})
+						.attr("cx",function(d) {return xScale(+d.projProjected);})
+						.attr("cy",function(d, i) {return yScale(i);})
+						.attr("fill",function(d) {return d.projPlayer == parentEl.attr("player")?"red":
+							d.selected=="N"?"black":"yellow";});
+						
+					var minPoints = dataAppend
+						.enter()
+						.append("circle")
+						.attr("r",function(d) {return d.projPlayer == parentEl.attr("player")?3:1.5;})
+						.attr("cx",function(d) {return xScale(+d.projFloor);})
+						.attr("cy",function(d, i) {return yScale(i);})
+						.attr("fill",function(d) {return d.projPlayer == parentEl.attr("player")?"red":
+							d.selected=="N"?"black":"yellow";});
+						
+					var maxPoints = dataAppend
+						.enter()
+						.append("circle")
+						.attr("r",function(d) {return d.projPlayer == parentEl.attr("player")?3:1.5;})
+						.attr("cx",function(d) {return xScale(+d.projCeiling);})
+						.attr("cy",function(d, i) {return yScale(i);})
+						.attr("fill",function(d) {return d.projPlayer == parentEl.attr("player")?"red":
+							d.selected=="N"?"black":"yellow";});
+						
+						
+						
+					var lines = dataAppend
+						.enter()
+						.append("line")
+						.attr("x1",function(d) {return xScale(+d.projFloor);})
+						.attr("y1",function(d, i) {return yScale(i);})
+						.attr("x2",function(d) {return xScale(+d.projCeiling);})
+						.attr("y2",function(d, i) {return yScale(i);})
+						.attr("stroke-width",function(d) {return d.projPlayer == parentEl.attr("player")?2:1;})
+						.attr("stroke",function(d) {return d.projPlayer == parentEl.attr("player")?"red":
+							d.selected=="N"?"black":"yellow";});
+				})
+				.on("mouseout",function(d) {
+					d3.select("#tooltip").classed("hidden",true);
+				});
+				
+			trs.append("td")
+				.text(function(d) {return d.lastYearPoints;});
+				
+			trs.append("td")
+				.text(function(d) {return d.age;});
+				
+			trs.append("td")
+				.text(function(d) {return d.experience;});
+				
+			trs.append("td")
+				.text(function(d) {return d.bye;});
+				
+			trs.append("td")
+				.text(function(d) {return d.chartRanking;})
+				.on("mousemove",function(d) {
+					var docWidth = document.documentElement.clientWidth;
+					var docHeight = document.documentElement.clientHeight;
+					d3.select("#tooltip").classed("hidden",false).classed('minWidth',true)
+						.style("left", function(d) {
+							var divWidth = d3.select(this).style("width").slice(0,-2);
+							return d3.min([d3.event.pageX,docWidth-divWidth]) + "px";})
+						.style("top", function(d) {
+							var divHeight = d3.select(this).style("height").slice(0,-2);
+							return d3.min([docHeight-divHeight,d3.event.pageY]) + "px";})
+						.selectAll("*").remove();
+					var parentEl = d3.select(this.parentElement);
+					var player = parentEl.attr("player");
+					var position = parentEl.attr("playerPosition");
+					var team = parentEl.attr("team").toUpperCase().replace("ARI","ARZ").replace("WSH","WAS");
+						
+					d3.select("#tooltip").append("text").style("display","block").text(parentEl.attr("player"));
+					
+					var positions = ['QBs','RBs','WRs','TEs'];
+					
+					for (var i=0;i<positions.length;i++) {
+						var table = d3.select("#tooltip").append("table").attr("class","table-bordered").style("display","inline");
+						table.append("thead").append("tr").append("th").text(positions[i]);
+						var trs = table.append("tbody")
+							.selectAll("tr")
+							.data(chartData.filter(function(d) {return d.chartTeam == team && d.chartPosition == positions[i].slice(0,-1);}))
+							.enter()
+							.append("tr");
+							
+						trs.append("td").text(function(d) {return d.chartRanking;});
+						trs.append("td")
+							.style("font-weight",function(d) {return d.chartPlayer.toUpperCase().replace(/\./g,'')==player.toUpperCase().replace(/\./g,'')?"bold":"none";})
+							.text(function(d) {return d.chartPlayer;});
+					}
+				})
+				.on("mouseout",function(d) {
+					d3.select("#tooltip").classed("hidden",true);
+				});
+			
+			
+			trs.append("td")
+				.style("cursor","pointer")
+				.text(function(d) {return d.selected=="K"?'Kept':d.selected=="Y"?'Yes':'Avail';})
+				.on("click", function(d) {
+					if(d3.select(this).text() == "Kept")
+					{
+						var temp = 0;
+					} else {
+						var selected = d3.select(this).text();
+						d3.select(this).text(selected=="Avail"?"Yes":"Avail");
+						d3.select(this.parentElement).style("background-color",selected=="Avail"?'red':posColors[d3.select(this.parentElement).attr("playerPosition")])
+						.attr("class",selected=="Avail"?"notAvail":"avail")
+						.attr("selected",selected=="Avail"?"Y":"N");
+						var selected = d3.select(this).text()=="Avail"?"N":"Y";
+						var player = d3.select(this.parentElement).attr("player");
+						var position = d3.select(this.parentElement).attr("playerPosition");
+						/*
+						var update = d3.json("php/updateCS.php?newValue="+selected+"&player="+player+"&position="+position).then(function(data) {
+							console.log("test1");
+							var temp = '';
+						});
+						
+						jQuery.ajax({
+							type: "GET",
+							url: "php/updateCS.php?newValue="+selected+"&player="+player+"&position="+position,
+							dataType: 'json',
+
+							success: function (obj, textstatus) {
+										  if( !('error' in obj) ) {
+											  yourVariable = obj.result;
+										  }
+										  else {
+											  console.log(obj.error);
+										  }
+									}
+						});*/
+						$.post( "php/updateCS.php",
+							{'newValue':selected, 'player' : player, 'position' : position});
+					}
+					
+					var pickedPlayers = 0;
+					pickedCells
+						.text(function(d,i) {
+						if(d3.select(this.parentElement).attr("selected") != "N" ) {
+							pickedPlayers += 1;
+							return '';
+						} else {
+						return i + 1 - pickedPlayers;
+						}});
+				});
+				
+		});
+		});
+		});
+	</script
+</body>
+</html>

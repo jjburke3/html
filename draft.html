@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>La Liga Port Lodge</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/1.4.0/regression.min.js"></script>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<h1>Drafted Players</h1>
+	<select id='yearSelect'>
+		<option class='perm' disabled>Select Year</option>
+		<option class='perm' value = 'All'>All Years</option>
+	</select>
+	<select id='playerSelect'>
+		<option class='perm' disabled>Select Team</option>
+		<option class='perm' value = 'All'>All Teams</option>
+	
+	</select>
+	<br>
+	<div>
+		<button class = 'reset' style="position: relative; left: 10px; top: 20px;">Reset</button>
+	<div>
+	<script>
+		//League winner data
+		var color = d3.scaleOrdinal(d3.schemeCategory10);
+		var height = 700;
+		var width = 1200;
+		var margin = {'top' : 50, 'bottom' : 40, 'left' : 40, 'right' : 15}
+		var svg = d3.select("body")
+			.append("svg")
+			.attr("width",width + margin.left + margin.right)
+			.attr("height",height + margin.top + margin.bottom)
+				.append("g")
+				.attr("transform","translate(" + margin.left + "," + margin.top + ")");
+				
+		svg.append("rect")
+			.attr("width",width)
+			.attr("height",height)
+			.style("fill","white");
+				
+		
+		
+		var d3Draft = d3.json("php/draft.php").then(function(data) {
+			
+			console.log(data);
+			var x = d3.scaleLinear()
+				.range([0,width])
+				.domain(d3.extent(data,function(d) {return +d.draftPick;}));
+				
+			var y = d3.scaleLinear()
+				.range([height,0])
+				.domain(d3.extent(data,function(d) {return +d.pointsOverReplace;}));
+			regDataSet = [];
+			
+			var minValue = d3.min(data,function(d) {return +d.pointsOverReplace;}) - 1;
+			
+			
+			data.forEach(function(d) {
+				regDataSet.push([+d.draftPick,+d.pointsOverReplace-minValue])
+			});
+			
+			
+			console.log(regDataSet)
+			
+			var powReg = regression('logarithmic', regDataSet,2);
+			
+	
+			
+			
+			console.log(powReg['points']);
+			var line = d3.line()
+				.x(function(d) { return x(d[0]); })
+				.y(function(d) { return y(d[1]+minValue); });
+			  
+			svg.append("path")
+				.datum(powReg['points'].sort(function(a,b) {return a[0] - b[0];}))
+				.attr("class","line")
+				.attr("d",line)
+				.style("fill","none")
+				.style("stroke","lightblue")
+				.style("stroke-width","10px");
+				
+				
+			
+			var yearOptions = d3.select("#yearSelect").selectAll("option:not(.perm)")
+				.data(d3.map(data, function(d){return d.draftYear;}).keys())
+				.enter()
+				.append("option")
+				.text(function(d) {return d;})
+				.attr('value',function(d) {return d;});
+			
+			var playerOptions = d3.select("#playerSelect").selectAll("option:not(.perm)")
+				.data(d3.map(data, function(d){return d.selectingTeam;}).keys())
+				.enter()
+				.append("option")
+				.text(function(d) {return d;})
+				.attr('value',function(d) {return d;});
+			
+				
+			var xAxis = d3.axisBottom()
+				.scale(x);
+				
+			var yAxis = d3.axisLeft()
+				.scale(y);
+				
+			svg.append("g")
+				.attr("class","x axis")
+				.call(xAxis)
+				.attr("transform","translate(0,"+height+")");
+				
+			svg.append("g")
+				.attr("class","y axis")
+				.call(yAxis);
+				
+			d3.selectAll("select")
+				.on("change",do_graph);
+				
+			do_graph();
+			function do_graph() {
+			
+				var selectTeam = d3.select("#playerSelect").property("value");
+				
+				var selectYear = d3.select("#yearSelect").property("value");
+				
+				var zoom = d3.zoom()
+					.scaleExtent([1,40])
+					.translateExtent([[0,height],[width,0]])
+					.on("zoom",zoomed);
+				resetted();
+					
+				var dots = svg
+					.selectAll(".dot")
+					.data(data.filter(function(d) {return (d.draftYear == selectYear || selectYear == 'All') && (d.selectingTeam == selectTeam || selectTeam == 'All');}));
+					
+				dots.transition(750)
+					.style("fill",function(d) {return color(d.playerPosition);})
+					.attr("r",3)
+					.attr("cx",function(d) {return x(+d.draftPick);})
+					.attr("cy",function(d) {return y(+d.pointsOverReplace);});
+					
+				dots.enter()
+					.append("circle")
+					.attr("class","dot")
+					.style("fill",function(d) {return color(d.playerPosition);})
+					.attr("r",3)
+					.attr("cx",function(d) {return x(+d.draftPick);})
+					.attr("cy",function(d) {return y(+d.pointsOverReplace);})
+					.on("mouseover",function(d) {
+						d3.selectAll(".dot").attr("r",3);
+						d3.select(this).attr("r",10);
+					})
+					.on("mouseout",function(d) {
+						d3.select(this).attr("r",3);
+					});
+					
+				dots.exit()
+					.remove();
+					
+				svg.call(zoom);
+				
+				function zoomed() {
+					var newX = d3.event.transform.rescaleX(x);
+					var newY = d3.event.transform.rescaleY(y);
+					d3.select(".x.axis")
+						.call(xAxis.scale(d3.event.transform.rescaleX(x)));
+					d3.select(".y.axis")
+						.call(yAxis.scale(d3.event.transform.rescaleY(y)));
+						
+						
+					svg.selectAll(".dot")
+						.data(data.filter(function(d) {return (d.draftYear == selectYear || selectYear == 'All') && (d.selectingTeam == selectTeam || selectTeam == 'All');}))
+						.attr("cx",function(d) {return newX(+d.draftPick);})
+						.attr("cy",function(d) {return newY(+d.pointsOverReplace);});
+						
+					
+				var lineZoom = d3.line()
+					.x(function(d) { return newX(d[0]); })
+					.y(function(d) { return newY(d[1]+minValue); });
+						
+					d3.select("path.line")
+				.datum(powReg['points'].sort(function(a,b) {return a[0] - b[0];}))
+						.attr("class","line")
+						.attr("d",lineZoom)
+						.style("fill","none")
+						.style("stroke","lightblue")
+						.style("stroke-width","10px");
+						
+						
+				}
+				
+				d3.select("button.reset")
+					.on("click",resetted);
+					
+				function resetted() {
+					svg.transition()
+						.duration(750)
+						.call(zoom.transform, d3.zoomIdentity);
+				}
+				
+			}
+		})
+	</script
+</body>
+</html>

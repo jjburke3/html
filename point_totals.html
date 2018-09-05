@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico?">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>La Liga Port Lodge</title>
+	<style>
+	body {
+	  font: 11px sans-serif;
+	}
+
+	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+	path {
+	stroke: black;
+	stroke-width: 2;
+	fill: none;
+	}
+
+	.dot {
+	  stroke: #000;
+	}
+
+	.tooltip {
+	  position: absolute;
+	  width: 200px;
+	  height: 28px;
+	  pointer-events: none;
+	}
+
+	.semihidden {
+		opacity: .3
+		}
+
+	.hidden {
+		pointer-events: none;
+		display: none;
+		}
+	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+<select id = "year">
+</select>
+<select id = "points_or_wins">
+	<option value = "points">Points</option>
+	<option value = "wins">Wins</option>
+</select>
+<input type = "checkbox" id = "qb" class = "position_check" value = "QB" checked>QB</input>
+<input type = "checkbox" id = "rb" class = "position_check" value = "RB" checked>RB</input>
+<input type = "checkbox" id = "wr" class = "position_check" value = "WR" checked>WR</input>
+<input type = "checkbox" id = "te" class = "position_check" value = "TE" checked>TE</input>
+<input type = "checkbox" id = "d" class = "position_check" value = "D/ST" checked>D/ST</input>
+<input type = "checkbox" id = "k" class = "position_check" value = "K" checked>K</input>
+</br>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-72052253-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script>
+var margin = {top: 50, right: 20, bottom: 30, left: 40},
+    width = 1500 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+	
+var data;
+var test_data;
+var classes;
+var positions;
+var position_string;
+/* 
+ * value accessor - returns the value to encode for a given data object.
+ * scale - maps value to a visual display encoding, such as a pixel position.
+ * map function - maps from data value to display value
+ * axis - sets up axis
+ */ 
+
+// setup x 
+var xValue = function(d) { return d.Age;}, // data -> value
+    xScale = d3.scalePoint().range([0, width]), // value -> display
+    xMap = function(d) { return xScale(xValue(d));}, // data -> display
+    xAxis = d3.axisBottom().scale(xScale);
+var formatPercent = d3.format("%");
+var formatCount = d3.format(",.0f");
+// setup y
+var yValue = function(d) { return d.conv;}, // data -> value
+    yScale = d3.scaleLinear().rangeRound([height, 0]), // value -> display
+    yMap = function(d) { return yScale(yValue(d));}, // data -> display
+    yAxis = d3.axisLeft().scale(yScale)
+	.tickFormat(formatCount);
+var by_player2;
+var rValue = function(d) {return Math.sqrt(d.quote);};
+var rScale = d3.scaleLinear().range([0,25]);
+// setup fill color
+var cValue = function(d) { return d.Program;};
+
+var color = d3.scaleOrdinal(d3.schemePaired);
+// add the graph canvas to the body of the webpage
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var text_svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", 100)
+var by_player2;
+// add the tooltip area to the webpage
+var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+// load data
+var php_data = d3.json("php/pointsData.php").then(function(data) {
+  // change string (from CSV) into number format
+  data.forEach(function(d) {
+	d.team = d.team.split(' NEW').join('');
+	d.vsTeam = d.vsTeam.split(' NEW').join('');
+	d.week = +d.week
+  });
+  console.log(data);
+ data = data.filter(function(d) {return d.season != "" && d.week <= 13;});
+ 
+ var years = d3.nest()
+	.key(function(d) {return d.season;}).sortKeys(d3.descending)
+	.entries(data);
+	
+ 
+ d3.select("#year").selectAll(".option").data(years).enter().append("option")
+	.attr("value",function(d) {return d.key;})
+	.text(function(d) {return d.key;});
+d3.select("#year").append("option").attr("value","all").text("All");
+ d3.select("#year").on("change",create_graph);
+d3.select("#points_or_wins").on("change",create_graph);
+d3.selectAll(".position_check").on("change",create_graph);
+create_graph();
+
+function create_graph() {
+var pos_checkboxes = ["qb","rb","wr","te","d","k"]; // array of positions
+position_string = [];
+for (var i = 0; i < pos_checkboxes.length; i++) { // loop through positons array
+if(document.getElementById(pos_checkboxes[i]).checked == true) // if position is checked
+	{
+	position_string.push(document.getElementById(pos_checkboxes[i]).value);
+	};
+}
+
+number_option = document.getElementById("points_or_wins");
+year_option = document.getElementById("year");
+
+var valueline = d3.line()
+.curve(d3.curveLinear)
+.x(function(d) {
+ return xScale(d.week); })
+.y(function(d) { if(number_option.options[number_option.selectedIndex].text == "Points") {
+return yScale(d.cum_points);}
+else {
+return yScale(d.cum_wins);
+} });
+
+data_year = data.filter(function(d) {if(year_option.options[year_option.selectedIndex].text == "All")
+{
+	return true;
+}
+else
+{
+	return d.season == year_option.options[year_option.selectedIndex].text;
+	}
+});
+
+console.log(data_year);
+
+by_player = d3.nest()
+	.key(function(d) {if(year_option.options[year_option.selectedIndex].text == "All")
+	{return d.team+"_"+d.season+"-"+("00"+d.week).slice(-2)+"_"+d.vsTeam;}
+	
+	else
+	{return d.team+"_"+("00"+d.week).slice(-2)+"_"+d.vsTeam;}})
+	.rollup(function(totals) {return {"Points": d3.sum(totals, function(d) {return +d.points;})}})
+	.entries(data_year.filter(function(d) {return d.playerSlot != "Bench" && position_string.indexOf(d.playerPosition)>0;}));
+		for (var i = 0; i <by_player.length; i++) {
+		by_player[i].player = by_player[i].key.split("_")[0];
+		by_player[i].week = by_player[i].key.split("_")[1];
+		by_player[i].opponent = by_player[i].key.split("_")[2];
+		by_player[i].win = 0;
+		by_player[i].cum_points = 0;
+		by_player[i].cum_wins = 0;}
+	
+		for (var i = 0; i <by_player.length; i++) {
+		for (var j = 0; j <by_player.length; j++) {
+			if (by_player[i].opponent === by_player[j].player && by_player[i].week == by_player[j].week) {
+			by_player[i].opponent_points = by_player[j].value.Points;
+			if(by_player[i].value.Points > by_player[j].value.Points) {
+			by_player[i].win = 1; }
+			else if (by_player[i].value.Points == by_player[j].value.Points) {
+			by_player[i].win = .5;}
+			}}
+		for (var j = 0; j <by_player.length; j++) {
+			if (by_player[i].player == by_player[j].player && by_player[i].week >= by_player[j].week) {
+			by_player[i].cum_points = by_player[i].cum_points + by_player[j].value.Points;
+			by_player[i].cum_wins = by_player[i].cum_wins + by_player[j].win;
+			}
+
+		}}	
+d3.selectAll(".label").remove();
+
+yScale.domain([0, d3.max(by_player, function(d) {if(number_option.options[number_option.selectedIndex].text == "Points") {
+return d.cum_points;}
+else {
+return d.cum_wins;
+}})]);
+xScale.domain(by_player.map(function(d) {return d.week;}));
+var y_label;
+function containsAny(str, substrings) {
+        for (var i = 0; i != substrings.length; i++) {
+           var substring = " " + substrings[i] + " ";
+           if ((str + " ").indexOf(substring) != - 1) {
+             return true;
+           }
+        }
+        return false; 
+    }
+
+if(number_option.options[number_option.selectedIndex].text == "Points") {
+y_label = "Cumulative Points";
+yAxis.ticks(6);
+}
+else {
+y_label = "Wins";
+yAxis.ticks(d3.max(by_player, function(d) {return d.cum_wins;}) + 1);
+}
+var tick_frequency = Math.round(xScale.domain().length / 20);
+xAxis.tickValues(xScale.domain().filter(function(d, i) {return !(i % tick_frequency);}));
+
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .attr("class", "x label")
+    .append("text")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("Week");
+svg.append("g")
+	.attr("class","y axis")
+	.call(yAxis)
+	.attr("class", "y label")
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text(y_label);
+d3.select(".gline").remove();
+svg.append("g")
+	.attr("class","gline");
+by_player2 = d3.nest()
+	.key(function(d) {return d.player;})
+	.entries(by_player);
+test_data = by_player2;
+var dataPath = by_player2.forEach(function(d) {
+var player = d.key;
+test_data = player
+	svg.select(".gline")
+	.append("path")
+	.data(by_player)
+	.attr("class", d.key + " graph_line")
+.attr("id", d.key)
+.style("stroke",color(d.key))
+.attr("d", valueline(d.values.sort(function(a,b) {
+	return d3.ascending(a.week, b.week);
+	})))
+.append("title")
+	.html(d.key);
+});
+text_svg.selectAll(".playerlabel").remove();
+text_svg.selectAll(".playerlabel")
+	.data(by_player2.sort((function(a, b) {
+	if(number_option.options[number_option.selectedIndex].text == "Points") {
+	return b.values[b.values.length - 1].cum_points - a.values[a.values.length - 1].cum_points;
+	}
+	else
+	{
+	if(b.values[b.values.length - 1].cum_wins == a.values[a.values.length - 1].cum_wins)
+	{
+	return b.values[b.values.length - 1].cum_points - a.values[a.values.length - 1].cum_points;
+	}
+	else {
+	return b.values[b.values.length - 1].cum_wins - a.values[a.values.length - 1].cum_wins;
+	}
+	}
+	
+	})))
+	.enter().append("text")
+	.attr("class",function(d) {return d.key + " playerlabel";})
+	.attr("text-anchor","middle")
+	.attr("x",function(d, i) {if(i < 5 ) {return (i * ((width + margin.right + margin.left)/5)) + ((width + margin.right + margin.left)/10)  }
+	else if(i < 10 ) {return ((i - 5) * ((width + margin.right + margin.left)/5)) + ((width + margin.right + margin.left)/10)  }
+	else {return ((i - 10) * ((width + margin.right + margin.left)/5)) + ((width + margin.right + margin.left)/10)  }
+	})
+	.attr("y",function(d, i) {if(i < 5) { return (100) / 6}
+	else if (i < 10) {return (100) * (1/2)}
+	else {return (100) * (5/6)}
+	
+	})
+	.text(function(d, i) {return (i + 1) + ": " + d.key;})
+	.style("fill",function(d) {return color(d.key);})
+	.style("font-size","20px")
+	.on("click",function(d) {classes = d3.select(this).attr("class").split(" ")[0] + "." + d3.select(this).attr("class").split(" ")[1];
+	if(d3.select(this).attr("class").match(/semihidden.*/))
+	{d3.select(this).classed("semihidden",false);
+	d3.select("." + classes + ".graph_line").classed("hidden",false);}
+	else
+	{d3.select(this).classed("semihidden",true);
+	d3.select("." + classes + ".graph_line").classed("hidden",true);}})
+	.on("mouseover",function(d) {
+	classes = d3.select(this).attr("class").split(" ")[0] + "." + d3.select(this).attr("class").split(" ")[1];
+d3.selectAll("path.graph_line").style("opacity",.2);
+
+d3.select("." + classes + ".graph_line").style("stroke-width","5px").style("opacity",1);
+})
+	.on("mouseout",function(d) {
+	classes = d3.select(this).attr("class").split(" ")[0] + "." + d3.select(this).attr("class").split(" ")[1];
+	d3.select("." + classes + ".graph_line").style("stroke-width","2px")
+d3.selectAll("path.graph_line").style("opacity",1);});;
+
+
+d3.selectAll("path.graph_line").on("mouseover",function(d) {
+d3.selectAll("path.graph_line").style("opacity",.2);
+
+d3.select(this).style("stroke-width","5px").style("opacity",1);
+});
+d3.selectAll("path.graph_line").on("mouseout",function(d) {d3.select(this).style("stroke-width","2px")
+d3.selectAll("path.graph_line").style("opacity",1);});
+};
+
+
+
+//    console.log(d);
+
+});
+
+</script>
+</body>
+</html>

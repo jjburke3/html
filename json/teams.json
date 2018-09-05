@@ -1,0 +1,12 @@
+{
+  "nodes": [
+{"id" : "1", "name" : "JJ", "group": "Team", "size":21, "extraText" : ""},
+{"id" : "2", "name" : "Billy", "group": "Team", "size":23, "extraText" : ""},
+{"id" : "3", "name" : "Matt Ryan", "group": "QB", "size":7, "extraText" : ""}
+  ],
+  "links": [
+   {"source" : "1", "target" : "3", "value" : 4},
+   {"source" : "2", "target" : "3", "value" : 3}
+  ]
+}
+

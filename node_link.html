@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+<style>
+
+	.links line {
+	  stroke: #999;
+	  stroke-opacity: 0.6;
+	}
+
+	.nodes circle {
+	  stroke: #fff;
+	  stroke-width: 1.5px;
+	}
+
+	.nodes circle.Team {
+	  stroke: black;
+	  stroke-width: 2.5px;
+	}
+	
+	select {
+		width:100%;
+	}
+	
+	svg {
+		border: 2px solid black;
+	}
+
+	
+	.rangeSlider {
+		width: 200;
+	}
+
+</style>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="css/scatter_plot.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+<div class="row">
+	<div class="col-4">
+	<select id="select-grouping" class="form-control">
+		<option disabled>Team Grouping</option>
+		<option value="Team">Team</option>
+		<option value="TeamYear">Team-Year</option>
+	</select>
+	</div>
+	<div class="col-4">
+	<select id="select-type" class="form-control">
+		<option disabled >Groupings</option>
+		<option value="player">Players</option>
+		<option value="Teams">Teams</option>
+		<option value="TeamPositions">Team Positions</option>
+	</select>
+	</div>
+	<div class="col-4">
+	<select id="forAgainst" class="form-control">
+		<option disabled>points for or Against</option>
+		<option value="for">points For</option>
+		<option value="against">points Against</option>
+	</select>
+	</div>
+	<div class="col-3">
+	<select id="yearStart" class="form-control">
+		<option disabled>Year Start</option>
+		<option value=2010>2010</option>
+		<option value=2011>2011</option>
+		<option value=2012>2012</option>
+		<option value=2013>2013</option>
+		<option value=2014>2014</option>
+		<option value=2015>2015</option>
+		<option value=2016>2016</option>
+		<option value=2017>2017</option>
+	</select>
+	</div>
+	<div class="col-3">
+	<select id="yearEnd" class="form-control">
+		<option disabled>Year End</option>
+		<option value=2010>2010</option>
+		<option value=2011>2011</option>
+		<option value=2012>2012</option>
+		<option value=2013>2013</option>
+		<option value=2014>2014</option>
+		<option value=2015>2015</option>
+		<option value=2016>2016</option>
+		<option value=2017 selected>2017</option>
+	</select>
+	</div>
+	<div class="col-3">
+	<select id="measure" class="form-control">
+		<option disabled>points or Play Count</option>
+		<option value="points">points</option>
+		<option value="playCount">Play Count</option>
+		<option value="surplus">Surplus points</option>
+	</select>
+	</div>
+	<div class="col-3">
+	<select id="selectPosition" class="form-control">
+		<option disabled>Position</option>
+		<option value="">All</option>
+		<option value="QB">QB</option>
+		<option value="RB">RB</option>
+		<option value="WR">WR</option>
+		<option value="TE">TE</option>
+		<option value="D-ST">D-ST</option>
+		<option value="K">K</option>
+	</select>
+	</div>
+</div>
+<div class="slidecontainer">
+  <text>Node Repulsion Force Strength</text>
+  <input type="range" min="1" max="100" value="50" class="slider" id="gravity" class="rangeSlider">
+  <text>Link Attraction Strength</text>
+  <input type="range" min="1" max="100" value="50" class="slider" id="linkForce" class="rangeSlider">
+  <text>Collision Detection</text>
+  <input type = "checkbox" id="collideCheck" value=1>
+</div>
+<div class=row>
+<svg width="960" height="600"></svg>
+<script>
+var simulation;
+runData();
+
+d3.selectAll("select").on("change",runData);
+
+function runData() {
+var selectYearStart = d3.select("#yearStart").property("value");
+var selectYearEnd = d3.select("#yearEnd").property("value");
+var selectGrouping = d3.select("#select-grouping").property("value");
+var selectType = d3.select("#select-type").property("value");
+var selectForAgainst = d3.select("#forAgainst").property("value");
+var selectMeasure = d3.select("#measure").property("value");
+var selectPosition = d3.select("#selectPosition").property("value");
+d3.select("svg").selectAll("*").remove();
+
+
+var teamCoding = {
+	'49ers D-ST D-ST':'SF',
+	'Bears D-ST D-ST':'Chi',
+	'Bengals D-ST D/ST':'Cin',
+	'Bills D-ST D/ST':'Buf',
+	'Broncos D-ST D/ST':'Den',
+	'Browns D-ST D-ST':'Cle',
+	'Buccaneers D-ST D-ST':'TB',
+	'Cardinals D-ST D-ST':'Ari',
+	'Chargers D-ST D-ST':'LAC',
+	'Chiefs D-ST D-ST':'KC',
+	'Colts D-ST D-ST':'Ind',
+	'Cowboys D-ST D-ST':'Dal',
+	'Dolphins D-ST D-ST':'Mia',
+	'Eagles D-ST D-ST':'Phi',
+	'Falcons D-ST D-ST':'Atl',
+	'Giants D-ST D-ST':'NYG',
+	'Jaguars D-ST D-ST':'Jax',
+	'Jets D-ST D-ST':'NYJ',
+	'Lions D-ST D-ST':'Det',
+	'Packers D-ST D-ST':'GB',
+	'Panthers D-ST D-ST':'Car',
+	'Patriots D-ST D-ST':'NE',
+	'Raiders D-ST D-ST':'Oak',
+	'Rams D-ST D-ST':'LA',
+	'Ravens D-ST D-ST':'Bal',
+	'Redskins D-ST D-ST':'Wsh',
+	'Saints D-ST D-ST':'NO',
+	'Seahawks D-ST D-ST':'Sea',
+	'Steelers D-ST D-ST':'Pit',
+	'Texans D-ST D-ST':'Hou',
+	'Titans D-ST D-ST':'Ten',
+	'Vikings D-ST D-ST':'Min'
+
+}
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+					
+			var div = d3.select("body").append("div")
+				.attr("class", "tooltip")
+				.style("opacity",0);
+
+var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+var linkForce = {"player":selectForAgainst=="for"&&selectPosition==""?2:50,"Teams":100,"TeamPositions":50}
+
+var gravitySliderScale = d3.scaleLinear()
+	.domain([1,100])
+	.range([20,-100]);
+	
+var linkSliderScale = d3.scaleLog()
+	.domain([1,100])
+	.range([100,1/5]);
+
+
+var json_data = d3.json("php/pointsData.php").then(function(data) {
+
+  
+	data = data.filter(function(d) {return d.playerSlot != 'Bench' && d.playerSlot != 'IR'  &&
+		+d.season >= selectYearStart && +d.season <= selectYearEnd;});
+		
+	data.forEach(function(d) {
+		if(selectForAgainst=="against"){
+			d.team = d.vsTeam;
+		}
+		d.player = d.player.split("/").join("-").split("_").join("-").split("'").join("-").split(".").join("");
+		d.NFLTeam = d.playerTeam;
+		var player_array = d.player.split("*").join("");
+		player_array = player_array.split(",");
+		d.position = d.playerPosition.split("/").join("-");
+		d.playCount = 1;
+		d.points = +d.points
+	});
+	
+	if(selectPosition!="")
+	{
+		data = data.filter(function(d) {return d.position == selectPosition;});
+	}
+	positionAverages = d3.nest()
+		.key(function(d) {return d.position;})
+		.rollup(function(totals) {return{"average": d3.mean(totals, function(d) {return +d.points;})}})
+		.entries(data);
+		
+	data = data.filter(function(d) {return d.position;});
+		
+	data.forEach(function(d) {
+		var pos = d.position
+		d.surplus = d.points-(positionAverages.filter(function(d) {return d.key == pos;})[0].value.average);
+		d.numberUsed = d3.max([selectMeasure == "points"?d.points:selectMeasure=="playCount"?d.playCount:d.surplus,0]);
+	});
+	console.log(data);
+	var max_amount = 0;
+	data2 = d3.nest()
+		.key(function(d) {return d.team.split(" NEW")[0]+(selectGrouping=="Team"?"":"-"+d.season);})
+		.rollup(function(totals) {return {"points": d3.sum(totals, function(d) {return d.numberUsed;})}})
+		.key(function(d) {if(selectType == "player") {return d.player+"_"+d.position;}
+			else if(selectType=="Teams") {return d.NFLTeam;}
+			else {return d.NFLTeam+"-"+d.position}})
+		.rollup(function(totals) {return {"points": d3.sum(totals, function(d) {return d.numberUsed;})}})
+		.entries(data);
+	var max_amount = d3.max(data2, function(d) {
+	return d3.max(d.values, function(e) { return e.value.points;});}	);
+	data3 = d3.nest()
+		.key(function(d) {
+		
+		if(selectType == "player") {return d.player+"_"+d.position;}
+			else if(selectType=="Teams") {return d.NFLTeam;}
+			else {return d.NFLTeam+"-"+d.position};})
+		.rollup(function(totals) {return {"points": d3.sum(totals, function(d) {return d.numberUsed;})}})
+		.entries(data);
+	var nodal_data = {nodes: [], links: []};
+	data2.forEach(function(d, i) {
+		nodal_data.nodes.push({id:d.key,name:d.key, group:"Team"+(selectGrouping=="Team"?"":"-"+d.key.split("-")[0]), size:d3.sum(d.values, function(d) {
+			return d.value.points;})
+		});
+		d.values.forEach(function(e) {
+			nodal_data.links.push({source:d.key,target:e.key,value:e.value.points/max_amount,total:e.value.points})
+		});
+	});
+	
+	data3.forEach(function(d, i) {
+		nodal_data.nodes.push({id:d.key,name:d.key, group:selectType=="player"?d.key.split("_")[1]:selectType=="Teams"?"":d.key.split("-")[1], size:d.value.points
+		});
+	});
+	
+	nodal_data.nodes = nodal_data.nodes.filter(function(d) {return d.size > 0;});
+	
+	nodal_data.links = nodal_data.links.filter(function(d) {return d.total > 0;});
+	
+	console.log(nodal_data);
+	graph = nodal_data;
+  var link = svg.append("g")
+      .attr("class", "links")
+    .selectAll("line")
+    .data(graph.links)
+    .enter().append("line")
+		.attr("class",function(d) {return "_"+d.source.split(" ").join("_")+" _"+d.target.split(" ").join("_");})
+		.classed("hide",function(d) {return d.total>(max_amount*.1)?false:true;})
+      .attr("stroke-width", function(d) { return d.value*10; })
+      .style("opacity", function(d) { return (d.value+1)/2; });
+	  
+	  d3.selectAll(".hide").style("display","none");
+	  
+	var rScale = d3.scaleLinear()
+		.range([0,40])
+		.domain([0,d3.max(graph.nodes, function(d) {return Math.sqrt(+d.size);})]);
+	
+	
+	d3.select("#gravity").property("value",gravitySliderScale.invert(-30))
+		.on("change",sim);
+	d3.select("#linkForce").property("value",linkSliderScale.invert(linkForce[selectType]))
+		.on("change",sim);
+	d3.select("#collideCheck").on("change",sim);
+	
+	
+	simulation = d3.forceSimulation();
+	
+		simulation
+    .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(function(d) {return +d.value/linkSliderScale(d3.select("#linkForce").property("value"))}))
+    .force("charge", d3.forceManyBody().strength(gravitySliderScale(d3.select("#gravity").property("value"))))
+	//.force("collision", d3.forceCollide().radius(function(d) {return rScale(Math.sqrt(+d.size))}))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+	  simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
+
+  simulation.force("link")
+      .links(graph.links);
+	
+	sim();
+	
+	function sim() {
+	console.log(graph);
+	
+  simulation.force("link").strength(function(d) {return +d.value/linkSliderScale(d3.select("#linkForce").property("value"))});
+	    simulation.force("charge").strength(gravitySliderScale(d3.select("#gravity").property("value")));
+		
+	if(d3.select("#collideCheck").property("checked")==true)
+	{
+	simulation.force("collision", d3.forceCollide().radius(function(d) {return rScale(Math.sqrt(+d.size))}));
+	} else {
+	simulation.force("collision", d3.forceCollide().radius(0));
+	}
+	  
+  simulation.restart();
+	
+	};
+
+  var node = svg.append("g")
+      .attr("class", "nodes")
+    .selectAll("circle")
+    .data(graph.nodes)
+    .enter().append("circle")
+		.attr("class",function(d) {return d.group?d.group.split("-").join(" "):"";})
+		.attr("id",function(d) {return "_"+d.id.split(" ").join("_");})
+      .attr("r", function(d) {return rScale(Math.sqrt(+d.size));})
+      .attr("fill", function(d) { return color(d.group); })
+      .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended))
+						.on("mouseover", function(d) {mouseover(d)})
+						.on("mousemove", mousemove)
+						.on("mouseout", mouseout);
+
+								
+			function mouseover(d) {
+				div.transition()
+					.duration(200)
+					.style("opacity", .75);
+				div.html("Name: " + d.name.split("_")[0]
+								+ "<br>Type: " + d.group
+								+ "<br>" + selectMeasure + ": " + Math.round(d.size*10)/10)
+					.style("left", (d3.event.pageX) + "px")
+					.style("top", (d3.event.pageY - 28) + "px");
+			}
+			
+			function mousemove() {
+				div.style("left", (d3.event.pageX) + "px")
+					.style("top", (d3.event.pageY - 28) + "px");
+			}
+
+			function mouseout() {
+				div.transition()
+					.duration(500)
+					.style("opacity",0);
+			}
+
+
+
+  function ticked() {
+    link
+        .attr("x1", function(d) { return d3.min([d3.max([d.source.x,10]),940]); })
+        .attr("y1", function(d) { return d3.min([d3.max([d.source.y,10]),590]); })
+        .attr("x2", function(d) { return d3.min([d3.max([d.target.x,10]),940]); })
+        .attr("y2", function(d) { return d3.min([d3.max([d.target.y,10]),590]); });
+
+    node
+        .attr("cx", function(d) { 
+			var circle_x = d3.min([d3.max([d.x,10]),940]);
+			d3.select(".temp-nodes").select("."+d3.select(this).attr("id")).attr("cx",circle_x);
+			return circle_x; })
+        .attr("cy", function(d) { 
+			var circle_y = d3.min([d3.max([d.y,10]),590]);
+			d3.select(".temp-nodes").select("."+d3.select(this).attr("id")).attr("cy",circle_y);
+			return circle_y; });
+		
+		
+  }
+  
+  
+			
+  
+  function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+  d3.selectAll("circle").style("opacity",.05);
+  d3.select(this).style("opacity",1);
+  d3.selectAll("line").style("display","none");
+  var circleId = d3.select(this).attr("id");
+  
+  d3.selectAll("table").remove();
+  
+  var table = d3.select("body").append("table").attr("class","table-bordered").append("tbody")
+  headRow = table.append("tr")
+  headRow.append("td").text(circleId.split("_").join(" "));
+  headRow.append("td").text(selectMeasure + ": "+Math.round(graph.nodes.filter(function(d) {return "_"+d.id.split(" ").join("_") == circleId;})[0].size*10)/10);
+  
+  labelRow = table.append("tr");
+  labelRow.append("td").text("Player")
+		.on("click",function(d) {return dataTable(5);});
+  labelRow.append("td").text("points")
+		.on("click",function(d) {return dataTable(0);});
+  labelRow.append("td").text("Average")
+		.on("click",function(d) {return dataTable(1);});
+  labelRow.append("td").text("Play Count")
+		.on("click",function(d) {return dataTable(2);});
+  labelRow.append("td").text("Surplus points")
+		.on("click",function(d) {return dataTable(3);});
+  labelRow.append("td").text("Average Surplus")
+		.on("click",function(d) {return dataTable(4);});
+  
+  var tempData = d3.nest()
+	.key(function(d) {if(selectType == "player") {return d.player+"_"+d.position;}
+			else if(selectType=="Teams") {return d.NFLTeam;}
+			else {return d.NFLTeam+"-"+d.position}})
+		.rollup(function(totals) {return {"points": d3.sum(totals, function(d) {return d.points;}),
+			"Average": d3.mean(totals, function(d) {return d.points;}),
+			"PlayCount": d3.sum(totals, function(d) {return d.playCount;}),
+			"Surpluspoints": d3.sum(totals, function(d) {return d.surplus;}),
+			"SurplusAverage": d3.mean(totals, function(d) {return d.surplus;})			
+			}
+		
+		})
+	.entries(data.filter(function(d) {return d.team.split(" NEW")[0]+(selectGrouping=="Team"?"":"-"+d.season) == circleId.substr(1).split("_").join(" ");}));
+	
+	
+	var tempData = tempData.sort(function(a, b) {return d3.descending(+a.value.points,+b.value.points);});
+	
+
+		
+	var tempData2 = tempData;
+	  
+  var tempData = d3.nest()
+	.key(function(d) {return d.team.split(" NEW")[0]+(selectGrouping=="Team"?"":"-"+d.season);})
+		.rollup(function(totals) {return {"points": d3.sum(totals, function(d) {return d.points;}),
+			"Average": d3.mean(totals, function(d) {return d.points;}),
+			"PlayCount": d3.sum(totals, function(d) {return d.playCount;}),
+			"Surpluspoints": d3.sum(totals, function(d) {return d.surplus;}),
+			"SurplusAverage": d3.mean(totals, function(d) {return d.surplus;})
+			}
+		
+		})
+	.entries(data.filter(function(d) {return (selectType == "player"?d.player+"_"+d.position:
+			selectType=="Teams"?d.NFLTeam:d.NFLTeam+"-"+d.position)})	
+		.filter(function(d) {
+		return (selectType == "player"?d.player+"_"+d.position:
+			selectType=="Teams"?d.NFLTeam:d.NFLTeam+"-"+d.position).split("_").join(" ") == circleId.substr(1).split("_").join(" ");}));
+			
+	
+	if(tempData2.length == 0)
+	{tempData2 = tempData;}
+	
+	var colorNames = d3.scaleOrdinal(d3.schemePaired);
+	
+	dataTable(0);
+	
+	function dataTable(sortColumn) {
+	
+	var columnOn = ['points','Average','PlayCount','Surpluspoints','SurplusAverage'];
+	
+	table.selectAll("tr.dataRows").remove();
+	
+	var tableData;
+	
+	if(sortColumn == 5)
+	{
+		tableData = tempData2.sort(function(a, b) {return d3.ascending(a.key, b.key)});	
+	} else {
+		tableData = tempData2.sort(function(a, b) {return d3.descending(+a.value[columnOn[sortColumn]], +b.value[columnOn[sortColumn]])});
+	}
+	
+	dataRows = table.selectAll("tr.dataRows").data(tableData)
+		.enter()
+		.append("tr")
+		.attr("class","dataRows")
+		.style("background-color",function(d) {return tempData.length>0?colorNames(d.key.split('-')[0]):"white";});
+	
+	dataRows.append("td")
+		.text(function(d) {return d.key;})
+		.on("mouseover", function(d) {mouseover2(d)})
+		.on("mousemove", mousemove)
+		.on("mouseout", mouseout);;
+		
+	function mouseover2(d) {
+	
+		var cellSelected = d.key;
+		console.log(cellSelected); //= d3.select(this).attr("text");
+		var mouseOverData = d3.nest()
+			.key(function(d) {return +d.season + (+d.week-1)/16;})
+			.entries(data.filter(function(d) {
+				return ((d.player+"_"+d.position).split("_").join(" ") == circleId.substr(1).split("_").join(" ")
+				&& d.team == cellSelected
+				) ||
+				(d.team == circleId.substr(1).split("_").join(" ")
+				&& (d.player+"_"+d.position).split("_").join(" ") == cellSelected.split("_").join(" ")
+				);}));
+				
+		console.log(mouseOverData);
+	div.transition()
+		.duration(200)
+		.style("opacity", .75);
+	div.html("")
+		.style("left", (d3.event.pageX) + "px")
+		.style("top", (d3.event.pageY - 28) + "px");
+		
+	var divRows = div.append("table").attr("class","table-bordered")
+		.append("tbody")
+		.selectAll("tr")
+		.data(mouseOverData)
+		.enter()
+		.append("tr")
+		
+	divRows
+		.append("td").text(function(d) {return d.values[0].season + " Week " + d.values[0].week;});
+		
+	divRows
+		.append("td").text(function(d) {return d.values[0].points;});
+		
+		
+	}
+		
+	dataRows.append("td")
+		.text(function(d) {
+		return Math.round(d.value.points*10)/10;});
+		
+	dataRows.append("td")
+		.text(function(d) {
+		return Math.round(d.value.Average*10)/10;});
+		
+	dataRows.append("td")
+		.text(function(d) {
+		return Math.round(d.value.PlayCount*10)/10;});
+		
+	dataRows.append("td")
+		.text(function(d) {
+		return Math.round(d.value.Surpluspoints*10)/10;});
+		
+	dataRows.append("td")
+		.text(function(d) {
+		return Math.round(d.value.SurplusAverage*10)/10;});
+		
+	}
+  
+  
+  
+  d3.select("svg").append("g").attr("class","temp-nodes nodes");
+  var main_players = graph.links.filter(function(d) {return "_"+d.source.id.split(" ").join("_") == circleId});
+  main_players.forEach(function(d) {
+	var team_circle = d3.select("#_" + d.target.id.split(" ").join("_"));
+	team_circle.style("opacity",.5);
+	if(team_circle._groups[0][0] != null)
+	{
+	d3.select(".temp-nodes").append("circle")
+		.attr("class","_"+d.target.id.split(" ").join("_"))
+		.attr("r",rScale(Math.sqrt(+d.total)))
+		.attr("cx",team_circle.attr("cx"))
+		.attr("cy",team_circle.attr("cy"))
+		.style("fill",team_circle.style("fill"));
+	}
+	d3.selectAll("."+circleId).style("display","inline");
+  });
+  var main_players = graph.links.filter(function(d) {return "_"+d.target.id.split(" ").join("_") == circleId});
+  main_players.forEach(function(d) {
+	var team_circle = d3.select("#_" + d.source.id.split(" ").join("_"));
+	team_circle.style("opacity",.5);
+	team_circle.append("text").text("test");
+	d3.select(".temp-nodes").append("circle")
+		.attr("class","_"+d.source.id.split(" ").join("_"))
+		.attr("r",rScale(Math.sqrt(+d.total)))
+		.attr("cx",team_circle.attr("cx"))
+		.attr("cy",team_circle.attr("cy"))
+		.style("fill",team_circle.style("fill"));
+	d3.selectAll("."+circleId).style("display","inline");
+  });
+  
+
+	d3.select(".tempSVG").remove();
+	if(tempData.length > 0 && selectType == "player")
+	{	
+	
+		
+	var temp_margin = {top: 5, right: 5, bottom: 30, left: 20},
+		temp_width = 700 - temp_margin.left - temp_margin.right,
+		temp_height = 300 - temp_margin.top - temp_margin.bottom;
+		var tempSVG = d3.select("body").append("svg")
+			.attr("class","tempSVG")
+			.attr("height",temp_height + temp_margin.top + temp_margin.bottom)
+			.attr("width",temp_width + temp_margin.left + temp_margin.right)
+				.append("g")
+				.attr("transform", "translate(" + temp_margin.left + "," + temp_margin.top + ")");;
+			
+		var playerData = d3.nest()
+			.key(function(d) {return +d.season + (+d.week-1)/16;})
+			.entries(data.filter(function(d) {
+				return (d.player+"_"+d.position).split("_").join(" ") == circleId.substr(1).split("_").join(" ");}));
+				
+		var xScale = d3.scaleLinear()
+			.range([0,temp_width])
+			.domain([
+				d3.min(playerData, function(d) {return +d.key;}),
+				d3.max(playerData, function(d) {return +d.key;})+1/16
+				]);
+			
+		var yScale = d3.scaleLinear()
+			.range([temp_height,0])
+			.domain([
+				d3.min([0,d3.min(playerData, function(d) {return +d.values[0].points;})]),
+				d3.max(playerData,function(d) {return +d.values[0].points;})				
+				]);
+			
+		var yAxis = d3.axisLeft()
+			.scale(yScale);
+			
+		var xAxis = d3.axisBottom()
+			.scale(xScale);
+			
+		tempSVG.append("g")
+			.attr("class","y axis")
+			.call(yAxis);
+			
+		tempSVG.append("g")
+			.attr("class","x axis")
+			.call(xAxis)
+			.attr("transform","translate(0," + temp_height + ")");
+			
+		tempSVG.selectAll(".bars")
+			.data(playerData)
+			.enter()
+			.append("rect")
+			.attr("class","bars")
+			.attr("x",function(d) {return xScale(+d.key)})
+			.attr("y",function(d) {return yScale(d3.max([0,+d.values[0].points]));})
+			.attr("width",xScale(d3.min(playerData,function(d) {return +d.key;})+(1/16)))
+			.attr("height",function(d) {return d3.min([temp_height,yScale(0)])-yScale(Math.abs(+d.values[0].points));})
+			.style("fill",function(d) {return colorNames(d.values[0].team.split(" NEW")[0]);});
+			
+	}
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+  d3.selectAll("circle").style("opacity",1);
+  d3.selectAll("line").style("display","inline");
+	  d3.selectAll(".hide").style("display","none");
+	d3.select(".temp-nodes").remove();
+}
+
+
+});
+
+}
+
+</script>
+</body>

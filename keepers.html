@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>La Liga Port Lodge</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<h1>Keepers</h1>
+	<table id="resultsTable" class='table table-hover table-striped'>
+		<thead>
+			<tr>
+				<th>Team</th>
+				<th>Keeper Value Over Draft Slot</th>
+				<th>Best Keeper Draft Year</th>
+				<th>Best Keeper Draft Pick</th>
+				<th>Best Keeper Player</th>
+				<th>Best Keeper Points Scored</th>
+				<th>Worst Keeper Draft Year</th>
+				<th>Worst Keeper Draft Pick</th>
+				<th>Worst Keeper Player</th>
+				<th>Worst Keeper Points Scored</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<script>
+		//League winner data
+		var d3Champs = d3.json("php/keepers.php").then(function(data) {
+			var trs = d3.select("#resultsTable").select("tbody")
+						.selectAll("tr")
+						.data(data)
+						.enter()
+						.append("tr");
+						
+			trs.append("td")
+				.text(function(d) {return d.team;});
+			trs.append("td")
+				.text(function(d) {return d.keeperValue;});
+			trs.append("td")
+				.text(function(d) {return d.bestKeeper.split('_')[0];});
+			trs.append("td")
+				.text(function(d) {return d.bestKeeper.split('_')[1];});
+			trs.append("td")
+				.text(function(d) {return d.bestKeeper.split('_')[2];});
+			trs.append("td")
+				.text(function(d) {return d.bestKeeper.split('_')[3];});
+			trs.append("td")
+				.text(function(d) {return d.worstKeeper.split('_')[0];});
+			trs.append("td")
+				.text(function(d) {return d.worstKeeper.split('_')[1];});
+			trs.append("td")
+				.text(function(d) {return d.worstKeeper.split('_')[2];});
+			trs.append("td")
+				.text(function(d) {return d.worstKeeper.split('_')[3];});
+		})
+	</script
+</body>
+</html>
