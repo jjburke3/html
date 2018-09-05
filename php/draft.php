@@ -55,6 +55,7 @@ where a.draftYear between 2010 and 2017
 left join (select statYear, statPlayer, statPosition, 
 sum(totalPoints) as points 
 from scrapped_data.playerStats 
+where statWeek < 17
 group by 1,2,3) b on draftYear = statYear and player = statPlayer  
 	and playerPosition = statPosition 
 join analysis.replacementValue on 
