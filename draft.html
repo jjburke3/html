@@ -174,8 +174,9 @@
 				var selectPos = d3.select("#posSelect").property("value");
 				
 				var zoom = d3.zoom()
+					.translateExtent([[0, 0], [width, height]])
+					.extent([[0, 0], [width, height]])
 					.scaleExtent([1,40])
-					.translateExtent([[0,height],[width,0]])
 					.on("zoom",zoomed);
 				resetted();
 					
@@ -240,7 +241,7 @@
 				dots.exit()
 					.remove();
 					
-				svg.call(zoom);
+				d3.select("svg").call(zoom);
 				
 				function zoomed() {
 					var newX = d3.event.transform.rescaleX(x);
