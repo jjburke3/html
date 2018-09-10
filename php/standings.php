@@ -16,11 +16,13 @@ wins as Wins,
 losses as Losses,
 tie as Tie,
 pointsScored as 'Points Scored',
-pointAverage as 'Average Points',
-exPointAverage as 'Expected Remaining Point Average',
-exWins as 'Expected Remaining Wins',
-playoffsOdds as 'Playoffs Odds',
-champOdds as 'Champ Odds'
+round(pointsScored/(wins+losses+tie),2) as 'Average Points',
+round(exPointAverage/(13-(wins+losses+tie)),2) as 'Expected Remaining Point Average',
+round(exWins,2) as 'Expected Remaining Wins',
+round(playoffsOdds,2) as 'Playoffs Odds',
+round(lowpoints,2) as 'Lowest Points Odds',
+round(highpoints,2) as 'Highest Points Odds',
+round(champOdds,2) as 'Champ Odds'
 from analysis.standings
 order by playoffsOdds desc,
 champOdds desc
