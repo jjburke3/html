@@ -22,7 +22,11 @@ round(ifnull(sum(case when winWeek <= 13 then winPoints end),0),1) as 'Regular S
 count(distinct(highSeason)) as 'Season High Points',
 count(distinct(lowSeason)) as 'Season Low Points',
 count(distinct(highWeek)) as 'Weekly High Points',
-count(distinct(lowWeek)) as 'Weekly Low Points'
+count(distinct(lowWeek)) as 'Weekly Low Points',
+substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
+	concat(winPoints,' (',winSeason,' Week ',winWeek,')') end order by winPoints desc separator '|'),'|',1) as 'Personal High Score',
+substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
+	concat(winPoints,' (',winSeason,' Week ',winWeek,')') end order by winPoints asc separator '|'),'|',1) as 'Personal Low Score'
 
 from la_liga_data.wins
 left join (
