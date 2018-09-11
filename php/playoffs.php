@@ -10,7 +10,7 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select winTeam, 
+select winTeam as Team, 
 ifnull(sum(case when playoffs = 'championship' then winWin end),0) as 'Champs',
 ifnull(sum(case when playoffs = 'championship' then winLoss end),0) as '2nd Place',
 ifnull(sum(case when playoffs = '3rd place' then winWin end),0) as '3rd Place',
@@ -19,14 +19,23 @@ ifnull(count(case when playoffs is not null and winWin = 1 then winSeason end),0
 ifnull(sum(case when winWeek <= 13 then winWin end),0) as 'Regular Season Wins',
 round(ifnull(sum(case when playoffs is not null then winPoints end),0),1) as 'Playoff Points',
 round(ifnull(sum(case when winWeek <= 13 then winPoints end),0),1) as 'Regular Season Points',
+round(ifnull(sum(case when winWeek <= 13 then winPoints end),0)/count(case when winWeek <= 13 then winSeason end),1) as 'Regular Season Points Avg',
 count(distinct(highSeason)) as 'Season High Points',
 count(distinct(lowSeason)) as 'Season Low Points',
 count(distinct(highWeek)) as 'Weekly High Points',
 count(distinct(lowWeek)) as 'Weekly Low Points',
 substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
-	concat(winPoints,' (',winSeason,' Week ',winWeek,')') end order by winPoints desc separator '|'),'|',1) as 'Personal High Score',
+	concat(winPoints,' (',winSeason,' ',
+		case when winWeek = 14 then '1st Playoff Round'
+        when winWeek = 15 then '2nd Playoff Round'
+        when playoffs = '3rd place' then '3rd Place Game'
+        when playoffs = 'championship' then 'Championship' else concat('Week ',winWeek) end,')') end order by winPoints desc separator '|'),'|',1) as 'Personal High Score',
 substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
-	concat(winPoints,' (',winSeason,' Week ',winWeek,')') end order by winPoints asc separator '|'),'|',1) as 'Personal Low Score'
+	concat(winPoints,' (',winSeason,' ',
+		case when winWeek = 14 then '1st Playoff Round'
+        when winWeek = 15 then '2nd Playoff Round'
+        when playoffs = '3rd place' then '3rd Place Game'
+        when playoffs = 'championship' then 'Championship' else concat('Week ',winWeek) end,')') end order by winPoints asc separator '|'),'|',1) as 'Personal Low Score'
 
 from la_liga_data.wins
 left join (
@@ -96,7 +105,6 @@ on lowWeek = concat(winSeason,'-',winWeek) and lowWeekTeam = winTeam and lowestW
 
 group by 1
 order by 2 desc,3 desc,4 desc, 5 desc
-
 
 ";
 $result = mysqli_query($conn,$sql);

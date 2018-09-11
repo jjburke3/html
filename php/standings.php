@@ -32,14 +32,31 @@ losses as Losses,
 tie as Tie,
 pointsScored as 'Points Scored',
 round(pointsScored/(wins+losses+tie),2) as 'Average Points',
-round(exPointAverage/(13-(wins+losses+tie)),2) as 'Expected End of Year Point Average',
-round(exWins,2) as 'Expected End of Year Wins',
-round(playoffsOdds,2) as 'Playoffs Odds',
-round(lowpoints,2) as 'Lowest Points Odds',
-round(highpoints,2) as 'Highest Points Odds',
-round(champOdds,2) as 'Champ Odds'
+concat(round(exPointAverage/13,2),' (',round(exPointAverage/13-exPointAverage2/13,2),')') as 'Expected End of Year Point Average',
+concat(round(exWins,2),' (',round(exWins-exWins2,2),')') as 'Expected End of Year Wins',
+concat(round(playoffsOdds,2),' (',round(playoffsOdds-playoffsOdds2,2),')') as 'Playoffs Odds',
+concat(round(lowpoints,2),' (',round(lowpoints-lowpoints2,2),')') as 'Lowest Points Odds',
+concat(round(highpoints,2),' (',round(highpoints-highpoints2,2),')') as 'Highest Points Odds',
+concat(round(champodds,2),' (',round(champodds-champodds2,2),')') as 'Champ Odds'
+from (select standTeam,
+substring_index(group_concat(wins order by standWeek desc separator '|'),'|',1) as wins,
+substring_index(group_concat(losses order by standWeek desc separator '|'),'|',1) as losses,
+substring_index(group_concat(tie order by standWeek desc separator '|'),'|',1) as tie,
+substring_index(group_concat(pointsScored order by standWeek desc separator '|'),'|',1) as pointsScored,
+substring_index(group_concat(exPointAverage order by standWeek desc separator '|'),'|',1) as exPointAverage,
+substring_index(substring_index(group_concat(exPointAverage order by standWeek desc separator '|'),'|',2),'|',-1) as exPointAverage2,
+substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',1) as exWins,
+substring_index(substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',2),'|',-1) as exWins2,
+substring_index(group_concat(playoffsOdds order by standWeek desc separator '|'),'|',1) as playoffsOdds,
+substring_index(substring_index(group_concat(playoffsOdds order by standWeek desc separator '|'),'|',2),'|',-1) as playoffsOdds2,
+substring_index(group_concat(lowPoints order by standWeek desc separator '|'),'|',1) as lowPoints,
+substring_index(substring_index(group_concat(lowPoints order by standWeek desc separator '|'),'|',2),'|',-1) as lowPoints2,
+substring_index(group_concat(highPoints order by standWeek desc separator '|'),'|',1) as highPoints,
+substring_index(substring_index(group_concat(highPoints order by standWeek desc separator '|'),'|',2),'|',-1) as highPoints2,
+substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',1) as champOdds,
+substring_index(substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',2),'|',-1) as champOdds2
 from analysis.standings
-where standWeek = (select max(standWeek) from analysis.standings)
+group by 1) b
 order by playoffsOdds desc,
 champOdds desc
 ";
