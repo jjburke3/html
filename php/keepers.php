@@ -19,6 +19,7 @@ from la_liga_data.keepers
 left join refData.pickValue pick1 on draftPick = pick1.pickNumber
 left join (select statYear, statPlayer, statPosition, sum(totalPoints) as points
 from scrapped_data.playerStats
+where statWeek < 17
 group by 1,2,3) b on statYear = draftYear and statPlayer = player and statPosition = position
 left join analysis.replacementValue on replaceYear = draftYear and replacePosition = position
 where draftYear < 2018
