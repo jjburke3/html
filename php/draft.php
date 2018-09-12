@@ -12,7 +12,8 @@ if (!$conn) {
 $sql = "
 select draftYear, draftRound, draftPick, 
 selectingTeam, player, playerPosition, ifnull(round(points,1),0) as points, 
-ifnull(round(points,1),0) - replacePoints as pointsOverReplace,  keeper
+ifnull(round(points,1),0) - replacePoints as pointsOverReplace,  keeper,
+(select max(week) from la_liga_data.pointsScored where season = draftYear) as maxWeek
  from (
  select a.draftYear as draftYear, 
       a.draftRound as draftRound, 
@@ -49,7 +50,7 @@ from la_liga_data.draftData a
 
 left join la_liga_data.keepers b on a.draftYear = b.draftYear and a.player = b.player and a.playerPosition = b.position
 left join scrapped_data.preRanks c on preYear = b.draftYear and prePlayer = b.player and prePosition = position
-where a.draftYear between 2010 and 2017
+where a.draftYear between 2010 and 2018
  
  ) draftData
 left join (select statYear, statPlayer, statPosition, 

@@ -47,6 +47,10 @@
 		<option class='perm' disabled>Select Position</option>
 		<option class='perm' value = 'All'>All Positions</option>
 	</select>
+	<select id='currYearSelect'>
+		<option class='perm' value = 'normal'>Current Year Actual Stats</option>
+		<option class='perm' value = 'pro'>Current Year Prorate Stats</option>
+	</select>
 	<br>
 	<div>
 		<button class = 'reset' style="position: relative; left: 10px; top: 40px;">Reset</button>
@@ -82,6 +86,10 @@
 		
 		var d3Draft = d3.json("php/draft.php").then(function(data) {
 			
+			data.forEach(function(d) {
+				d.proRate = +d.pointsOverReplace*(16/+d.maxWeek)
+				});
+			
 			console.log(data);
 			var x = d3.scaleLinear()
 				.range([0,width])
@@ -107,7 +115,6 @@
 	
 			
 			
-			console.log(powReg['points']);
 			var line = d3.line()
 				.x(function(d) { return x(d[0]); })
 				.y(function(d) { return y(d[1]+minValue); });
@@ -167,11 +174,22 @@
 			do_graph();
 			function do_graph() {
 			
+				
+			
 				var selectTeam = d3.select("#playerSelect").property("value");
 				
 				var selectYear = d3.select("#yearSelect").property("value");
 				
 				var selectPos = d3.select("#posSelect").property("value");
+				
+				var selectType = d3.select("#currYearSelect").property("value");
+				
+				y.domain(d3.extent(data,function(d) {return selectType=='pro'?+d.proRate:+d.pointsOverReplace;}));
+				
+				var yAxis = d3.axisLeft()
+					.scale(y);
+				d3.select(".y.axis")
+					.call(yAxis);
 				
 				var zoom = d3.zoom()
 					.translateExtent([[0, 0], [width, height]])
@@ -188,7 +206,7 @@
 					.style("fill",function(d) {return color(d.playerPosition);})
 					.attr("r",3)
 					.attr("cx",function(d) {return x(+d.draftPick);})
-					.attr("cy",function(d) {return y(+d.pointsOverReplace);})
+					.attr("cy",function(d) {return y(selectType=='pro'?+d.proRate:+d.pointsOverReplace);})
 					.attr("html-value",function(d) {return "Player: " + d.player.replace("_","'") + "<br>" +
 								  "Position: " + d.playerPosition + "<br>" +
 								  "Team: " + d.selectingTeam + "<br>" +
@@ -213,7 +231,7 @@
 								  "Points Scored: " + Math.round(+d.points) + "<br>" +
 								  (d.keeper=="Y"?"Keeper":"");})
 					.attr("cx",function(d) {return x(+d.draftPick);})
-					.attr("cy",function(d) {return y(+d.pointsOverReplace);})
+					.attr("cy",function(d) {return y(selectType=='pro'?+d.proRate:+d.pointsOverReplace);})
 					.style("stroke",function(d) {return d.keeper=="Y"?'black':'none';})
 					.style("stroke-width","2px")
 					.on("mouseover",function(d) {
@@ -255,7 +273,8 @@
 					svg.selectAll(".dot")
 						.data(data.filter(function(d) {return (d.draftYear == selectYear || selectYear == 'All') && (d.selectingTeam == selectTeam || selectTeam == 'All') && (d.playerPosition == selectPos || selectPos == 'All');}))
 						.attr("cx",function(d) {return newX(+d.draftPick);})
-						.attr("cy",function(d) {return newY(+d.pointsOverReplace);});
+						.attr("cy",function(d) {
+						return newY(selectType=='pro'?+d.proRate:+d.pointsOverReplace);});
 						
 					
 				var lineZoom = d3.line()

@@ -15,7 +15,7 @@
 		<thead>
 			<tr>
 				<th>Team</th>
-				<th>Keeper Value Over Draft Slot</th>
+				<th>Keeper Value Over Draft Slot (2018 Value)</th>
 				<th>Best Keeper Draft Year</th>
 				<th>Best Keeper Draft Pick</th>
 				<th>Best Keeper Player</th>
@@ -41,7 +41,7 @@
 			trs.append("td")
 				.text(function(d) {return d.team;});
 			trs.append("td")
-				.text(function(d) {return d.keeperValue;});
+				.text(function(d) {return d.keeperValue + " (" + d.currentYearValue + ")";});
 			trs.append("td")
 				.text(function(d) {return d.bestKeeper.split('_')[0];});
 			trs.append("td")
