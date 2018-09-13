@@ -160,7 +160,6 @@ if(document.getElementById(pos_checkboxes[i]).checked == true) // if position is
 	position_string.push(document.getElementById(pos_checkboxes[i]).value);
 	};
 }
-
 number_option = document.getElementById("points_or_wins");
 year_option = document.getElementById("year");
 
@@ -193,7 +192,7 @@ by_player = d3.nest()
 	else
 	{return d.team+"_"+("00"+d.week).slice(-2)+"_"+d.vsTeam;}})
 	.rollup(function(totals) {return {"Points": d3.sum(totals, function(d) {return +d.points;})}})
-	.entries(data_year.filter(function(d) {return d.playerSlot != "Bench" && position_string.indexOf(d.playerPosition)>0;}));
+	.entries(data_year.filter(function(d) {return d.playerSlot != "Bench" && position_string.indexOf(d.playerPosition)>=0;}));
 		for (var i = 0; i <by_player.length; i++) {
 		by_player[i].player = by_player[i].key.split("_")[0];
 		by_player[i].week = by_player[i].key.split("_")[1];
@@ -276,6 +275,7 @@ by_player2 = d3.nest()
 	.key(function(d) {return d.player;})
 	.entries(by_player);
 test_data = by_player2;
+console.log(by_player2);
 var dataPath = by_player2.forEach(function(d) {
 var player = d.key;
 test_data = player

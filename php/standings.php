@@ -56,6 +56,7 @@ substring_index(substring_index(group_concat(highPoints order by standWeek desc 
 substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',1) as champOdds,
 substring_index(substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',2),'|',-1) as champOdds2
 from analysis.standings
+where standType = '".$_GET['type']."'
 group by 1) b
 order by playoffsOdds desc,
 champOdds desc
