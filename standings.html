@@ -39,7 +39,6 @@
 			.on("change",returnValues);
 		returnValues();
 		function returnValues() {
-			console.log("test");
 			var selectType = d3.select("#typeSelect").property("value");
 			var d3Champs = d3.json("php/standings.php?type="+selectType).then(function(data) {
 				d3.select("#standTable").select("thead").selectAll("*").remove();
