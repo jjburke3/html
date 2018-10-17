@@ -1,7 +1,6 @@
 $('body').append( "<div class='topnav' id = 'navBar'></div ")
 $('#navBar').append( "<a class='active' href='./'>La Liga Port Lodge</a>" )
 $('#navBar').append( "<a href='standings.html'>Standings</a>" )
-$('#navBar').append( "<a href='points.html'>Points and Wins</a>" )
 $('#navBar').append( "<a href='playoffs.html'>Regular Season and Playoff Results</a>" )
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Draft Info" +
@@ -21,6 +20,7 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "</div>")
 	$('#otherDiv').append( "<a href='node_link.html'>Link-Node Graph</a>")
 	$('#otherDiv').append( "<a href='point_totals.html'>Points/Wins Graph</a>")
+	$('#otherDiv').append( "<a href='pointsMap.html'>Points Location Map</a>")
 
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Download Data" +
