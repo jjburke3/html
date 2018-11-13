@@ -37,6 +37,8 @@ concat(round(exWins,2),' (',round(exWins-exWins2,2),')') as 'Expected End of Yea
 concat(round(playoffsOdds,2),' (',round(playoffsOdds-playoffsOdds2,2),')') as 'Playoffs Odds',
 concat(round(lowpoints,2),' (',round(lowpoints-lowpoints2,2),')') as 'Lowest Points Odds',
 concat(round(highpoints,2),' (',round(highpoints-highpoints2,2),')') as 'Highest Points Odds',
+concat(round(firstPlaceOdds,2),' (',round(firstPlaceOdds-firstPlaceOdds2,2),')') as 'First Place Odds',
+concat(round(byeOdds,2),' (',round(byeOdds-byeOdds2,2),')') as 'First Round Bye Odds',
 concat(round(champodds,2),' (',round(champodds-champodds2,2),')') as 'Champ Odds'
 from (select standTeam,
 substring_index(group_concat(wins order by standWeek desc separator '|'),'|',1) as wins,
@@ -54,7 +56,11 @@ substring_index(substring_index(group_concat(lowPoints order by standWeek desc s
 substring_index(group_concat(highPoints order by standWeek desc separator '|'),'|',1) as highPoints,
 substring_index(substring_index(group_concat(highPoints order by standWeek desc separator '|'),'|',2),'|',-1) as highPoints2,
 substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',1) as champOdds,
-substring_index(substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',2),'|',-1) as champOdds2
+substring_index(substring_index(group_concat(champOdds order by standWeek desc separator '|'),'|',2),'|',-1) as champOdds2,
+substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',1) as firstPlaceOdds,
+substring_index(substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',2),'|',-1) as firstPlaceOdds2,
+substring_index(group_concat(bye order by standWeek desc separator '|'),'|',1) as byeOdds,
+substring_index(substring_index(group_concat(bye order by standWeek desc separator '|'),'|',2),'|',-1) as byeOdds2
 from analysis.standings
 where standType = '".$_GET['type']."'
 group by 1) b

@@ -36,6 +36,8 @@
 		<option value = 'champOdds'>Champ Odds</option>
 		<option value = 'highpoints'>High Points Odds</option>
 		<option value = 'lowPoints'>Low Points Odds</option>
+		<option value = 'firstPlace'>First Place Odds</option>
+		<option value = 'bye'>First Round Bye Odds</option>
 	</select>
 	<div id="graph-div">
 		
@@ -97,6 +99,8 @@
 								case 'Playoffs Odds':
 								case 'Lowest Points Odds':
 								case 'Highest Points Odds':
+								case 'First Place Odds':
+								case 'First Round Bye Odds':
 								case 'Champ Odds':
 									data = data.sort(function(a, b) {return d3.descending(
 										+a[columnName].split(' ')[0],
