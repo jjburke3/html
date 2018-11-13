@@ -203,7 +203,7 @@
 						.style("stroke-width","2px")
 						.style("fill","none")
 						.attr("d", valueline(d.values.sort(function(a,b) {
-							return d3.ascending(a.standWeek, b.standWeek);
+							return d3.ascending(+a.standWeek, +b.standWeek);
 							})))
 						.append("title")
 							.html(d.key);
