@@ -27,7 +27,7 @@ when 'ricky garcia' then 'Ricky Garcia'
 when 'andrew lamb' then 'Andrew Lamb'
 else
 	standTeam end as Team,
-standWeek, wins, losses, tie, pointsScored, pointAverage, exPointAverage, exWins, playoffsOdds, champOdds, highpoints, lowPoints
+standWeek, wins, losses, tie, pointsScored, pointAverage, exPointAverage, exWins, playoffsOdds, champOdds, highpoints, lowPoints, firstplace, bye
 from analysis.standings
 where standType = '".$_GET['type']."'
 ";
