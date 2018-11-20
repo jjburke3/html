@@ -30,6 +30,7 @@ else
 wins as Wins,
 losses as Losses,
 tie as Tie,
+weekHigh as 'Weekly High Points',
 pointsScored as 'Points Scored',
 round(pointsScored/(wins+losses+tie),2) as 'Average Points',
 concat(round(exPointAverage/13,2),' (',round(exPointAverage/13-exPointAverage2/13,2),')') as 'Expected End of Year Point Average',
@@ -39,13 +40,17 @@ concat(round(lowpoints,2),' (',round(lowpoints-lowpoints2,2),')') as 'Lowest Poi
 concat(round(highpoints,2),' (',round(highpoints-highpoints2,2),')') as 'Highest Points Odds',
 concat(round(firstPlaceOdds,2),' (',round(firstPlaceOdds-firstPlaceOdds2,2),')') as 'First Place Odds',
 concat(round(byeOdds,2),' (',round(byeOdds-byeOdds2,2),')') as 'First Round Bye Odds',
-concat(round(champodds,2),' (',round(champodds-champodds2,2),')') as 'Champ Odds'
+concat(round(champodds,2),' (',round(champodds-champodds2,2),')') as 'Champ Odds',
+concat(round(exWeekHigh,2),' (',round(exWeekHigh-exWeekHigh2,2),')') as 'Expected Weekly High Points',
+concat(round(exMoney,2),' (',round(exMoney-exMoney2,2),')') as 'Expected Payouts'
+
 from (select standTeam,
 substring_index(group_concat(wins order by standWeek desc separator '|'),'|',1) as wins,
 substring_index(group_concat(losses order by standWeek desc separator '|'),'|',1) as losses,
 substring_index(group_concat(tie order by standWeek desc separator '|'),'|',1) as tie,
 substring_index(group_concat(pointsScored order by standWeek desc separator '|'),'|',1) as pointsScored,
 substring_index(group_concat(exPointAverage order by standWeek desc separator '|'),'|',1) as exPointAverage,
+substring_index(group_concat(weekHigh order by standWeek desc separator '|'),'|',1) as weekHigh,
 substring_index(substring_index(group_concat(exPointAverage order by standWeek desc separator '|'),'|',2),'|',-1) as exPointAverage2,
 substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',1) as exWins,
 substring_index(substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',2),'|',-1) as exWins2,
@@ -60,7 +65,11 @@ substring_index(substring_index(group_concat(champOdds order by standWeek desc s
 substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',1) as firstPlaceOdds,
 substring_index(substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',2),'|',-1) as firstPlaceOdds2,
 substring_index(group_concat(bye order by standWeek desc separator '|'),'|',1) as byeOdds,
-substring_index(substring_index(group_concat(bye order by standWeek desc separator '|'),'|',2),'|',-1) as byeOdds2
+substring_index(substring_index(group_concat(exWeekHigh order by standWeek desc separator '|'),'|',2),'|',-1) as byeOdds2,
+substring_index(group_concat(exWeekHigh order by standWeek desc separator '|'),'|',1) as exWeekHigh,
+substring_index(substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',2),'|',-1) as exWeekHigh2,
+substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',1) as exMoney,
+substring_index(substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',2),'|',-1) as exMoney2
 from analysis.standings
 where standType = '".$_GET['type']."'
 group by 1) b
