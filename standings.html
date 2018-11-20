@@ -94,6 +94,7 @@
 								case 'Tie':
 								case 'Points Scored':
 								case 'Average Points':
+								case 'Weekly High Points':
 									data = data.sort(function(a, b) {return d3.descending(+a[columnName],+b[columnName])});
 									break;
 								case 'Expected End of Year Point Average':
@@ -104,6 +105,8 @@
 								case 'First Place Odds':
 								case 'First Round Bye Odds':
 								case 'Champ Odds':
+								case 'Expected Weekly High Points':
+								case 'Expected Payouts':
 									data = data.sort(function(a, b) {return d3.descending(
 										+a[columnName].split(' ')[0],
 										+b[columnName].split(' ')[0]
