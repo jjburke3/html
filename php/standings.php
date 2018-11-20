@@ -65,9 +65,9 @@ substring_index(substring_index(group_concat(champOdds order by standWeek desc s
 substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',1) as firstPlaceOdds,
 substring_index(substring_index(group_concat(firstplace order by standWeek desc separator '|'),'|',2),'|',-1) as firstPlaceOdds2,
 substring_index(group_concat(bye order by standWeek desc separator '|'),'|',1) as byeOdds,
-substring_index(substring_index(group_concat(exWeekHigh order by standWeek desc separator '|'),'|',2),'|',-1) as byeOdds2,
+substring_index(substring_index(group_concat(bye order by standWeek desc separator '|'),'|',2),'|',-1) as byeOdds2,
 substring_index(group_concat(exWeekHigh order by standWeek desc separator '|'),'|',1) as exWeekHigh,
-substring_index(substring_index(group_concat(exWins order by standWeek desc separator '|'),'|',2),'|',-1) as exWeekHigh2,
+substring_index(substring_index(group_concat(exWeekHigh order by standWeek desc separator '|'),'|',2),'|',-1) as exWeekHigh2,
 substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',1) as exMoney,
 substring_index(substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',2),'|',-1) as exMoney2
 from analysis.standings
