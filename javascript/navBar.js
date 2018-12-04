@@ -29,8 +29,8 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<div class='dropdown-content' " +
 					 "id = 'rulesDiv'</div>" +
 					 "</div>")
-	$('#rulesDiv').append( "<a href='php/payouts.php'>Yearly Payouts</a>")
-	$('#rulesDiv').append( "<a href='php/rules.php'>Rules Changes</a>")
+	$('#rulesDiv').append( "<a href='payouts.html'>Yearly Payouts</a>")
+	$('#rulesDiv').append( "<a href='rules.html'>Rules Changes</a>")
 
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Download Data" +
