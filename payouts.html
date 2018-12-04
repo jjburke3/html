@@ -25,7 +25,7 @@
 	</table>
 	<script>
 		//League winner data
-		var payoutYears = d3.json("php/payouts.php").then(function(data) {
+		var payoutYears = d3.json("php/payout_years.php").then(function(data) {
 			d3.select("#yearSelect").selectAll("option.temp")
 				.data(data)
 				.enter()
