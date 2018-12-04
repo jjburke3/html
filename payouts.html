@@ -33,12 +33,15 @@
 					.attr("class","temp")
 					.attr("value",function(d) {return +d.payYear;})
 					.text(function(d) {return d.payYear;});
+					
+					
+				
+			returnValues();
 				
 		
 		});
 		d3.selectAll("select.pullData")
 			.on("change",returnValues);
-		returnValues();
 		function returnValues() {
 			var selectYear = d3.select("#yearSelect").property("value");
 			var d3Champs = d3.json("php/payouts.php?year="+selectYear).then(function(data) {
