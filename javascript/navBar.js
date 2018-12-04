@@ -22,7 +22,7 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 	$('#otherDiv').append( "<a href='point_totals.html'>Points/Wins Graph</a>")
 	$('#otherDiv').append( "<a href='pointsMap.html'>Points Location Map</a>")
 
-$('#navBar').append( "<div class = 'dropdown3'>" +
+$('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>League Rules" +
 					 "<i class='fa fa-caret-down'></i>" +
 					 "</button> "+
