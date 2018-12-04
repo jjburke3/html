@@ -11,7 +11,7 @@ if (!$conn) {
 }
 $sql = "
 select payYear as Year,
-payRule as Payment Rule,
+payRule as 'Payment Rule',
 payAmount as Amount
 from la_liga_data.payouts
 where payYear = '".$_GET['year']."'
