@@ -10,11 +10,8 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select payYear as Year,
-payRule as Payment Rule,
-payAmount as Amount
+select distinct payYear
 from la_liga_data.payouts
-where payYear = '".$_GET['year']."'
 
 ";
 $result = mysqli_query($conn,$sql);
