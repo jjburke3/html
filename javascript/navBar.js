@@ -22,6 +22,16 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 	$('#otherDiv').append( "<a href='point_totals.html'>Points/Wins Graph</a>")
 	$('#otherDiv').append( "<a href='pointsMap.html'>Points Location Map</a>")
 
+$('#navBar').append( "<div class = 'dropdown3'>" +
+					 "<button class='dropbtn'>League Rules" +
+					 "<i class='fa fa-caret-down'></i>" +
+					 "</button> "+
+					 "<div class='dropdown-content' " +
+					 "id = 'rulesDiv'</div>" +
+					 "</div>")
+	$('#rulesDiv').append( "<a href='php/payouts.php'>Yearly Payouts</a>")
+	$('#rulesDiv').append( "<a href='php/rules.php'>Rules Changes</a>")
+
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Download Data" +
 					 "<i class='fa fa-caret-down'></i>" +
