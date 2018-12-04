@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Yearly Payouts</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<h1>Payouts</h1>
+	<select id="yearSelect" class="pullData">
+		<option disabled>Payout Year</option>
+	</select>
+	<table id="payoutTable" class='table table-hover table-striped'>
+		<thead>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<script>
+		//League winner data
+		var divSize = {'height' : 700, 'width' : 1000}
+		var margins ={'top' : 20,
+					  'bottom' : 50,
+					  'left' : 40,
+					  'right' : 20}
+		d3.selectAll("select.pullData")
+			.on("change",returnValues);
+		returnValues();
+		svg = d3.select("#graph-div")
+			.append("svg")
+			.attr('height', divSize.height + margins.top + margins.bottom)
+			.attr("width", divSize.width + margins.left + margins.right)
+			.style("border","1px solid black")
+			.style("margin","10px")
+			.append("g")
+				.attr("transform","translate("+margins.left+","+margins.top+")");
+				
+		d3.select("#graph-div")
+			.append("svg")
+			.attr("id","legend")
+			.attr('height', divSize.height + margins.top + margins.bottom)
+			.attr("width", 200)
+			.style("border","1px solid black")
+			.style("margin","10px");
+		function returnValues() {
+			var selectYear = d3.select("#yearSelect").property("value");
+			var d3Champs = d3.json("php/payouts.php?year="+selectYear).then(function(data) {
+				d3.select("#payoutTable").select("thead").selectAll("*").remove();
+				d3.select("#payoutTable").select("tbody").selectAll("*").remove();
+				var ths = d3.select("#standTable").select("thead")
+					.append("tr")
+					.selectAll("th")
+					.data(d3.keys(data[0]))
+					.enter()
+					.append("th")
+						.text(function(d) {return d;});
+				var trs = d3.select("#payoutTable").select("tbody")
+							.selectAll("tr")
+							.data(data)
+							.enter()
+							.append("tr");
+							
+				trs.selectAll("td")
+					.data(function(d) {return d3.values(d);})
+					.enter()
+					.append("td")
+					.text(function(d) {return d;});
+			});
+			
+		}
+	</script
+</body>
+</html>
