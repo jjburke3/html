@@ -11,15 +11,26 @@ if (!$conn) {
 }
 $sql = "
 select winTeam as Team, 
-ifnull(sum(case when playoffs = 'championship' then winWin end),0) as 'Champs',
-ifnull(sum(case when playoffs = 'championship' then winLoss end),0) as '2nd Place',
-ifnull(sum(case when playoffs = '3rd place' then winWin end),0) as '3rd Place',
-ifnull(count(distinct case when playoffs is not null then winSeason end),0) as 'Playoff Apps.',
-ifnull(count(case when playoffs is not null and winWin = 1 then winSeason end),0) as 'Playoff Wins',
-round(ifnull(sum(case when playoffs is not null then winPoints end),0),1) as 'Playoff Points',
-round(ifnull(sum(case when playoffs is not null then winPoints end),0)/ifnull(count(case when playoffs is not null then winPoints end),0),1) as 'Playoff Points Average',
-round(ifnull(count(case when playoffs is not null and winWin = 1 then winSeason end),0)/
-ifnull(count(case when playoffs is not null then winSeason end),0),4) as 'Playoff Winning Percentage',
+ifnull(sum(case when winWeek <= 13 then winWin end),0) as 'Regular Season Wins',
+round(ifnull(sum(case when winWeek <= 13 then winPoints end),0),1) as 'Regular Season Points',
+round(ifnull(sum(case when winWeek <= 13 then winPoints end),0)/count(case when winWeek <= 13 then winSeason end),1) as 'Regular Season Points Avg',
+round(ifnull(sum(case when winWeek <= 13 then winWin end),0)/ifnull(count(case when winWeek <= 13 then winWin end),0),4) as 'Regular Season Winning Percentage',
+count(distinct(highSeason)) as 'Season High Points',
+count(distinct(lowSeason)) as 'Season Low Points',
+count(distinct(highWeek)) as 'Weekly High Points',
+count(distinct(lowWeek)) as 'Weekly Low Points',
+substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
+	concat(winPoints,' (',winSeason,' ',
+		case when winWeek = 14 then '1st Playoff Round'
+        when winWeek = 15 then '2nd Playoff Round'
+        when playoffs = '3rd place' then '3rd Place Game'
+        when playoffs = 'championship' then 'Championship' else concat('Week ',winWeek) end,')') end order by winPoints desc separator '|'),'|',1) as 'Personal High Score',
+substring_index(group_concat(case when winWeek <= 13 or playoffs is not null then
+	concat(winPoints,' (',winSeason,' ',
+		case when winWeek = 14 then '1st Playoff Round'
+        when winWeek = 15 then '2nd Playoff Round'
+        when playoffs = '3rd place' then '3rd Place Game'
+        when playoffs = 'championship' then 'Championship' else concat('Week ',winWeek) end,')') end order by winPoints asc separator '|'),'|',1) as 'Personal Low Score',
         
 	ifnull((select sum(payAmount) from 
 		(select payAmount, winTeam as playoffTeam from la_liga_data.payouts
@@ -65,21 +76,30 @@ ifnull(count(case when playoffs is not null then winSeason end),0),4) as 'Playof
     join (select distinct winSeason, winTeam as playTeam from la_liga_data.wins) b on winSeason = payYear
     where playTeam = winTeam and payRule = 'Buy In'),0) -- buyins
     as 'Career Net Winnings',
-    	ifnull((select sum(payAmount) from 
-		(select payAmount, winTeam as playoffTeam from la_liga_data.payouts
-		join la_liga_data.wins side on side.winSeason = payYear
-		and playoffs = 'Championship' and winWin = 1 and payRule = '1st Place Finish') b where playoffTeam = winTeam
-	),0) as '1st Place Winnings',
-    ifnull((select sum(payAmount) from 
-		(select payAmount, winTeam as playoffTeam from la_liga_data.payouts
-		join la_liga_data.wins side on side.winSeason = payYear
-		and playoffs = 'Championship' and winWin = 0 and payRule = '2nd Place Finish') b where playoffTeam = winTeam
-	),0)  as '2nd Place Winnings',
-    ifnull((select sum(payAmount) from 
-		(select payAmount, winTeam as playoffTeam from la_liga_data.payouts
-		join la_liga_data.wins side on side.winSeason = payYear
-		and playoffs = '3rd place' and winWin = 1 and payRule = '3rd Place Finish') b where playoffTeam = winTeam
-	),0) as '3rd Place Winnings'
+    ifnull((select sum(payAmount) from (select payAmount, payYear, 
+	substring_index(group_concat(winTeam order by seasonWins desc, seasonPoints desc separator '|'),'|',1) as highTeam
+    from la_liga_data.payouts
+    join (select winSeason, winTeam, sum(winWin) + (sum(winTie)*.5) as seasonWins,
+    sum(winPoints) as seasonPoints from la_liga_data.wins where winWeek <= 13
+    group by winSeason, winTeam
+    having count(distinct(winWeek)) = 13) b on winSeason = payYear
+    where payRule = 'Regular Season Champ'
+    group by payAmount, payYear) b where highTeam = winTeam),0) as 'Regular Season 1st Place Winnings',
+    ifnull((select sum(payAmount) from (select payAmount, payYear, 
+	substring_index(group_concat(winTeam order by seasonPoints desc separator '|'),'|',1) as highTeam
+    from la_liga_data.payouts
+    join (select winSeason, winTeam, sum(winPoints) as seasonPoints from la_liga_data.wins where winWeek <= 13
+    group by winSeason, winTeam
+    having count(distinct(winWeek)) = 13) b on winSeason = payYear
+    where payRule = 'Regular Season High Points'
+    group by payAmount, payYear) b where highTeam = winTeam),0) as 'Regular Season High Points Winnings',
+    ifnull((select sum(payAmount) from (select payAmount, payYear,winWeek, 
+	substring_index(group_concat(winTeam order by seasonPoints desc separator '|'),'|',1) as highTeam
+    from la_liga_data.payouts
+    join (select winSeason,winWeek, winTeam, sum(winPoints) as seasonPoints from la_liga_data.wins where winWeek <= 13
+    group by winSeason,winWeek, winTeam) b on winSeason = payYear
+    where payRule = 'Weekly High Points'
+    group by payAmount, payYear,winWeek) b where highTeam = winTeam),0) as 'Weekly High Points Winnings'
 
 from la_liga_data.wins main
 left join (
