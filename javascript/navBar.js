@@ -9,7 +9,7 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "id = 'resultsDiv'</div>" +
 					 "</div>")
 	$('#resultsDiv').append( "<a href='season.html'>Regular Season</a>")
-	$('#resultsDiv').append( "<a href='playoffs.html.html'>Playoffs</a>")
+	$('#resultsDiv').append( "<a href='playoffs.html'>Playoffs</a>")
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Draft Info" +
 					 "<i class='fa fa-caret-down'></i>" +

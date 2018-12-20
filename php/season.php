@@ -168,7 +168,7 @@ order by 1, 3 asc) b, (select @row := 0, @label := cast('' as char), @priorP := 
 on lowWeek = concat(winSeason,'-',winWeek) and lowWeekTeam = winTeam and lowestWeekTotal = 1
 
 group by 1
-order by 2 desc,3 desc,4 desc, 5 desc
+order by 2 desc,3 desc
 
 ";
 $result = mysqli_query($conn,$sql);
