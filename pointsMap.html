@@ -10,12 +10,153 @@
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
 	<script src="javascript/ga.js"></script>
+	<!-- google maps api reference -->
+	<script src="//maps.google.com/maps/api/js?key=AIzaSyAEzPa6JQe9jpdO1XY3oocY8a3GtMtvdv0"></script>
+	<style>
+		.hidden {
+			display: none;
+		}
+		
+		#tooltip {
+			position: absolute;
+			width: auto;
+			height: auto;
+			padding: 10px;
+			padding-left: 25px;
+			background-color: white;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border-radius: 10px;
+			-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			pointer-events: none;
+			opacity: .8;
+		}
 
+		#tooltip p {
+			margin: 0;
+			font-family: sans-serif;
+			font-size: 16px;
+			line-height: 20px;
+		}
+	</style>
 </head>
 
 <body>
 	<!-- toolbar script -->
 	<script src="javascript/navBar.js"></script>
+	<!-- svg containing google map -->
+	<div id = "map-div" class="col-sm-4">
+		<div id="map" class = "container-fluid" style="height: 700px; width: 1500px;"></div>
+		<div id="tooltip" class="hidden">
+			<p><span id="value">100</span></p>
+		</div>
+	</div>
+	
+	<script>
+		var map = new google.maps.Map(d3.select("#map").node(), {
+			// centered on orlando
+			zoom: 7,
+			center: new google.maps.LatLng(28.270379, -81.585017),
+			mapTypeId: google.maps.MapTypeId.TERRAIN
+			});
+			
+		var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']);
+			
+		var mapPoints = d3.json("php/pointsMap.php").then(function(data) {
+			console.log(data);
+			
+			var bounds = new google.maps.LatLngBounds();
+			
+			data.forEach(function(d){
+					// extend bounds of map to include each agent circle
+					bounds.extend(d.lat_lng = new google.maps.LatLng(+d.lat, +d.longitude));
+				  });
+				  
+			map.fitBounds(bounds);
+			
+			var overlay = new google.maps.OverlayView(),
+				r = 4.5,
+				padding = r*3;
+				
+			overlay.onAdd = function() {
+				var layer = d3.select(this.getPanes().overlayMouseTarget)
+					.append("svg")
+					.attr('class','stations');
+					overlay.draw = function(){
+						var projection = this.getProjection(),
+						sw = projection.fromLatLngToDivPixel(bounds.getSouthWest()),
+						ne = projection.fromLatLngToDivPixel(bounds.getNorthEast());
+							
+						sw.x -= padding;
+						sw.y += padding;
+						ne.x += padding;
+						ne.y -= padding;
+							
+						var markerOverlay = this;
+						var overlayProjection = markerOverlay.getProjection();
+						
+						var googleMapProjection = function(coordinates) {
+							var googleCoordinates = new google.maps.LatLng(coordinates[1], coordinates[0]);
+							var pixelCoordinates = overlayProjection.fromLatLngToDivPixel(googleCoordinates);
+							return[pixelCoordinates.x-sw.x, pixelCoordinates.y-ne.y];
+						}
+						
+						d3.select('.stations')
+							.attr('width',(ne.x - sw.x) + 'px')
+							.attr('height',(sw.y - ne.y) + 'px')
+							.style('position','absolute')
+							.style('left',sw.x+'px')
+							.style('top',ne.y+'px');
+							
+						var markers = layer.selectAll('.marker')
+							.data(data)
+							.each(transform)
+							.enter()
+							.append('circle')
+							.attr('class',function(d) {return 'marker ' + d.team;})
+							.attr('fill',function(d) {return color(d.team);})
+							.style('stroke','black')
+							.attr('r',r)
+							.attr('cx',function(d) {
+								d = projection.fromLatLngToDivPixel(d.lat_lng);
+								return d.x-sw.x;
+							})
+							.attr('cy',function(d) {
+								d = projection.fromLatLngToDivPixel(d.lat_lng);
+								return d.y-ne.y;
+							})
+							.on('mousemove',function() {
+								var mouse = d3.mouse(d3.select("#map").node()).map( 	function(d) {return parseInt(d);});
+								// display tooltip and move to cursor position
+								var tooltipHtml = d3.select("#tooltip")
+									.style("left",mouse[0]+"px")
+									.style("top",mouse[1]+"px")
+									.classed("hidden",false)
+									.select('p')
+										.html(
+											d3.select(this).attr('class').split('marker ').join('')
+										);
+							})
+							.on('mouseout',function() {
+								d3.select("#tooltip")
+									.classed("hidden",true);
+							});
+							
+						function transform(d) {
+							d = projection.fromLatLngToDivPixel(d.lat_lng);
+							return d3.select(this)
+								.attr('cx',d.x-sw.x)
+								.attr('cy',d.y-ne.y);
+						}
+							
+					}
+			}
+			
+			overlay.setMap(map);
+		});
+	</script>
 
 </body>
 </html>
