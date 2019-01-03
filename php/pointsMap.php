@@ -16,7 +16,7 @@ sum(longitude*case when points > 0 then points else 0 end)/sum(case when points 
 from (
 select team, playerTeam,
 latitude, longitude,
-sum(points) as points from la_liga_data.pointsscored
+sum(points) as points from la_liga_data.pointsScored
 left join refData.venuelocations on (homeTeam = playerTeam or homeTeam2 = playerTeam)
 and season >= yearStart and season <= yearEnd
 where season = 2018 and week <= 13
