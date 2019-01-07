@@ -11,19 +11,18 @@ if (!$conn) {
 }
 $sql = "
 select team, 
-sum(latitude*case when points > 0 then points else 0 end)/sum(case when points > 0 then points else 0 end) as lat,
-sum(longitude*case when points > 0 then points else 0 end)/sum(case when points > 0 then points else 0 end) as longitude
-from (
-select team, playerTeam,
+ucase(playerTeam) as playerTeam,
+venueName,
+player,
+playerPosition,
 latitude, longitude,
+season,
 sum(points) as points from la_liga_data.pointsScored
 left join refData.venuelocations on (homeTeam = playerTeam or homeTeam2 = playerTeam)
 and season >= yearStart and season <= yearEnd
-where season = 2018 and week <= 13
-and playerSlot not in ('Bench','IR')
-group by team, playerTeam, latitude, longitude) b
-group by team
-
+where playerSlot not in ('Bench','IR')
+group by team, 2, venueName, player, playerPosition, season, latitude, longitude
+order by latitude
 ";
 
 
