@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Players</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<h1>Players</h1>
+	<select id="positionSelect" class="pullData">
+		<option disabled>Positions</option>
+		<option value='all' selected>All</option>
+		<option value='Off'>All Offensive</option>
+		<option value='QB'>QB</option>
+		<option value='RB'>RB</option>
+		<option value='WR'>WR</option>
+		<option value='TE'>TE</option>
+		<option value='D/ST'>D/ST</option>
+		<option value='K'>K</option>
+	</select>
+	<select id="yearStartSelect" class="pullData">
+		<option disabled>Start Year Range</option>
+	</select>
+	<select id="yearEndSelect" class="pullData">
+		<option disabled>End Year Range</option>
+	</select>
+	<table id="playerTable" class='table table-hover table-bordered'>
+		<thead>
+			<th>Rank</th>
+			<th>Position Rank</th>
+			<th>Player</th>
+			<th>Position</thn>
+			<th>Teams</th>
+			<th>Years</th>
+			<th>Points</th>
+			<th>Most Used By</th>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<script>
+		var dataPull = d3.json("php/playerList.php").then(function(data) {
+			console.log(data);
+			
+			var rows = d3.select("tbody")
+				.selectAll("tr")
+				.data(data)
+				.enter()
+				.append("tr");
+				
+			rows.append("td")
+				.text(function(d) {return d.rank;});
+				
+			rows.append("td")
+				.text(function(d) {return d.positionRank;});
+				
+			rows.append("td")
+				.append("a")
+				.attr("href",function(d) {return "players.html?player=" + d.statPlayer.split(' ').join('-')+"&position="+d.statPosition;})
+				.text(function(d) {return d.statPlayer;});
+				
+			rows.append("td")
+				.text(function(d) {return d.statPosition;});
+				
+			rows.append("td")
+				.text(function(d) {return d.teams;});
+				
+			rows.append("td")
+				.text(function(d) {return d.years;});
+				
+			rows.append("td")
+				.text(function(d) {return d.points;});
+				
+			rows.append("td")
+				.text(function(d) {return d.mostUsedBy;});
+		
+		});
+	</script
+</body>
+</html>

@@ -19,6 +19,7 @@ $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "</div>")
 	$('#draftDiv').append( "<a href='keepers.html'>Keepers</a>")
 	$('#draftDiv').append( "<a href='draft.html'>Draft Chart</a>")
+$('#navBar').append( "<a href='playerList.html'>Players</a>" )
 $('#navBar').append( "<div class = 'dropdown2'>" +
 					 "<button class='dropbtn'>Other Projects" +
 					 "<i class='fa fa-caret-down'></i>" +

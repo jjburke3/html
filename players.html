@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Players</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<script src="javascript/navBar.js"></script>
+	<div id='bodydiv'>
+		<div id='bodyHeadDiv'>
+			<h1 id = 'playerTitle'></h1>
+		</div>
+	</div>
+	<script>
+		var urlParams = new URLSearchParams(window.location.search);
+		var player = urlParams.get('player').split('-').join(' ');
+		document.title = player.split('_').join("'");
+		d3.select("#playerTitle").text(player.split('_').join("'"));
+		
+		var request = new XMLHttpRequest();
+
+		// Open a new connection, using the GET request on the URL endpoint
+		var playerQuery = player.split(' ').join('+').split('_').join("'");
+		request.open('GET', 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBKV7vpVLBhpggv_X041NSsxi2_JoJmsgo&cx=010003257524888520746:js_pte8i3r4&q='+playerQuery+'+nfl', true);
+		
+		request.onload = function () {
+		  var data = JSON.parse(this.response);
+			d3.select("#bodyHeadDiv").append("img")
+				.attr("src",data.items[0].pagemap.cse_image[0].src)
+				.style("height","200px")
+				.style("float","right");
+		  
+		  }
+		
+		request.send();
+		var dataPull = d3.json("php/player.php?player="+urlParams.get('player')+"&pos="+urlParams.get('position')).then(function(data) {
+			console.log(data);
+			var table = d3.select("#bodydiv")
+				.append("table")
+				.attr("class","table-bordered")
+				.style("margin-left","5px");
+				
+			var thead = table.append("thead").append("tr");
+			
+			var tbody = table.append("tbody").append("tr");
+			
+			var ths = ['Points', 'Position', 'NFL Teams', 'La Liga Teams', 'First Year', 'Last Year', 'Winning %','Championships Won'];
+			
+			thead.selectAll("th")
+				.data(ths)
+				.enter()
+				.append("th")
+				.text(function(d) {return d;});
+				
+			var tds = [];
+			
+			tds.push(d3.sum(data,function(d) {return Math.round(d.team=="FA"?+d.faPoints:+d.scoredPoints);}));
+			
+			tds.push(d3.map(data,function(d) {return d.playerPosition.toUpperCase().trim();}).keys().join(', '));
+			
+			tds.push(d3.map(data,function(d) {return d.playerTeam.toUpperCase().trim();}).keys().join(', '));
+			
+			tds.push(d3.map(data.filter(function(d) {return d.team != 'FA';}),function(d) {return d.team.trim();}).keys().join(', '));
+			
+			tds.push(d3.min(data, function(d) {return +d.season;}));
+			
+			tds.push(d3.max(data, function(d) {return +d.season;}));
+			
+			tds.push(Math.round((d3.sum(data, function(d) {return +d.winWin;})/data.filter(function(d) {return d.winWin != null;}).length)*100)/100);
+			
+			tds.push(d3.map(data.filter(function(d) {return d.winWin == 1 && d.playoffs == "championship";}),function(d) {return d.season;}).keys().join(', '));
+			
+			tbody.selectAll("td")
+				.data(tds)
+				.enter()
+				.append("td")
+				.text(function(d) {return d;});
+				
+			
+			
+			
+			
+		
+		});
+	</script
+</body>
+</html>
