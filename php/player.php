@@ -16,7 +16,7 @@ $position = $_GET['pos'];
 $sql = "
 select b.*,
 winWin, playoffs,
-
+winOpp,
 coalesce(concat(
 case when k.id is not null then 'Keeper ' else '' end,
 'Round ',d.draftRound,', Pick ',d.draftPick,' by ',selectingTeam),'') as draftPlace

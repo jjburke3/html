@@ -10,6 +10,28 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="css/navBar.css">
 	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<style>
+			.hidden {
+			display:none;
+			}
+			
+		 #tooltip {
+        position: absolute;
+        width: auto;
+        height: auto;
+        padding: 10px;
+		padding-left: 25px;
+        background-color: #E6DEDC;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+		opacity: .95;
+}
+	</style>
 </head>
 <body>
 	<script src="javascript/navBar.js"></script>
@@ -18,6 +40,7 @@
 			<h1 id = 'playerTitle'></h1>
 		</div>
 	</div>
+	<div id="tooltip" class="hidden"></div>
 	<script>
 		var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', 
 			'#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', 	
@@ -72,7 +95,7 @@
 			tds.push(d3.map(data,function(d) {return d.playerTeam.toUpperCase().trim();}).keys().join(', '));
 			
 			tds.push(d3.map(data.filter(function(d) {return d.team != 'FA';}),function(d) {
-				return "<span style='color:" + d3.rgb(color(d.team.trim())) + "'>" + d.team.trim() + "</span>";
+				return "<span class='scrollover' style='color:" + d3.rgb(color(d.team.trim())) + "'>" + d.team.trim() + "</span>";
 			}).keys().join(', '));
 			
 			tds.push(d3.min(data, function(d) {return +d.season;}));
@@ -145,8 +168,24 @@
 				
 			var years = d3.map(data, function(d) {return d.season;}).keys().sort(function(a, b) {return b - a;});
 			
+			d3.selectAll('.scrollover')
+				.on('mousemove',function(d) {
+					var selectedTeam = d3.select(this).text().split(' ').join('_');
+					console.log(selectedTeam);
+					d3.selectAll('.scrollover').style('font-weight','normal');
+					d3.select(this).style('font-weight','bold');
+					d3.selectAll('.playerBar').style('opacity',.3);
+					d3.selectAll('.'+selectedTeam).style('opacity',1);
+					
+				})
+				.on('mouseout',function(d) {
+					d3.selectAll('.scrollover').style('font-weight','normal');
+					d3.selectAll('.playerBar').style('opacity',1);
+				});
+			
 			years.forEach(function(d) {
 				for(var i = 16; i >= 1; i += -1) {
+					var year = d, week = i;
 					weekTr = weekTable.append("tr");
 					weekTr.append("td").attr('align','right').text(d);
 					weekTr.append("td").attr('align','right').text(i);
@@ -168,9 +207,18 @@
 					var team = weekData?weekData.team:'';
 					var win = weekData?(
 						(weekData.team != 'FA' && weekData.winWin == 1)?'green':(
-							(weekData.team != 'FA' && weekData.winWin == 0)?'red':'none'
+							(weekData.team != 'FA' && weekData.winWin == 0)?'red':'white'
 						)
-					):'none';
+					):'white';
+					var winText = weekData?(
+						(weekData.team != 'FA' && weekData.winWin == 1)?'W':(
+							(weekData.team != 'FA' && weekData.winWin == 0)?'L':''
+						)
+					):'';
+					
+					var playoffsText = weekData?weekData.playoffs?"</br>"+weekData.playoffs:"":'';
+					var benchText = weekData?weekData.bench?"</br>"+weekData.bench:"":'';
+					var opponentText = weekData?weekData.winOpp?weekData.winOpp:"":'';
 					
 					svg.append('rect')
 						.attr("x",xScale(d)+ (i/16) * xScale.bandwidth() - (((1/16) * xScale.bandwidth())*.225))
@@ -178,13 +226,42 @@
 						.attr("width",(xScale.bandwidth()/16)*.9)
 						.attr("height",height)
 						.style("fill",win)
-						.style("opacity",.1);
+						.attr('htmlText',
+							'Team: ' + team + "</br>" +
+									year + "-" + week + "</br>" +
+									'Points: ' + pointsScored + 
+									(opponentText?("</br>" +winText + " vs. " + opponentText):'') +
+									benchText +
+									playoffsText
+						)
+						.style("opacity",.1)
+						.on('mousemove',function(d) {
+							console.log('test');
+							var docWidth = document.documentElement.clientWidth;
+							var docHeight = $("body").height();
+							d3.select("#tooltip")
+								.classed('hidden',false)
+								.style("left", function(d) {
+									var divWidth = d3.select(this).style("width").slice(0,-2);
+									return d3.min([d3.event.pageX,docWidth-divWidth]) + "px";})
+								.style("top", function(d) {
+									var divHeight = d3.select(this).style("height").slice(0,-2);
+									return d3.min([docHeight-divHeight,d3.event.pageY]) + "px";})
+								.html(
+									d3.select(this).attr('htmlText')
+								);
+						})
+						.on('mouseout',function(d) {
+							d3.select("#tooltip").classed("hidden",true);
+						});
 					svg.append('rect')
+						.attr('class','playerBar ' + team.split(' ').join('_'))
 						.attr("x",xScale(d)+ (i/16) * xScale.bandwidth())
 						.attr("y",yScale(d3.max([0,pointsScored])))
 						.attr("width",(xScale.bandwidth()/16)*.4)
 						.attr("height",yScale(0)-yScale(Math.abs(+pointsScored)))
-						.style("fill",team=="FA"?'grey':d3.rgb(color(team)).darker(weekData? weekData.bench== 'Bench'?1:0:0));
+						.style("fill",team=="FA"?'grey':d3.rgb(color(team)).darker(weekData? weekData.bench== 'Bench'?1:0:0))
+						.style('pointer-events','none');
 					
 				}
 			});
