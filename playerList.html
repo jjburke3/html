@@ -18,6 +18,7 @@
 		<option disabled>Positions</option>
 		<option value='all' selected>All</option>
 		<option value='Off'>All Offensive</option>
+		<option value='flex'>Flex</option>
 		<option value='QB'>QB</option>
 		<option value='RB'>RB</option>
 		<option value='WR'>WR</option>
@@ -41,47 +42,91 @@
 			<th>Years</th>
 			<th>Points</th>
 			<th>Most Used By</th>
+			<th>Wins</th>
+			<th>Win %</th>
+			<th>Unique Teams</th>
+			<th>Championships</th>
 		</thead>
 		<tbody>
 		</tbody>
 	</table>
 	<script>
-		var dataPull = d3.json("php/playerList.php").then(function(data) {
-			console.log(data);
+		var order = 'Rank';
+		d3.selectAll(".pullData")
+			.on("change",runData);
+		runData();
+		function runData() {
 			
-			var rows = d3.select("tbody")
-				.selectAll("tr")
-				.data(data)
-				.enter()
-				.append("tr");
+			var positionSelect = d3.select("#positionSelect").property("value");
+
+	
+			var dataPull = d3.json("php/playerList.php?position=" + positionSelect).then(function(data) {
+			
+							
+				d3.selectAll("th")
+					.on('click',function(d) {
+						order = d3.select(this).text();
+						createTable(order);
+				});
+			
+				createTable(order);
 				
-			rows.append("td")
-				.text(function(d) {return d.rank;});
+				function createTable(sortOrder) {
+					if(['Rank','Position Rank','Player','Position','Teams','Years','Most Used By'].includes(order))
+					{
+						data = data.sort(function(a, b) {return a[order] - b[order];});
+					} else {
+						data = data.sort(function(a, b) {return b[order] - a[order];});
+					}
+					console.log(data);
+					d3.select("tbody").selectAll("tr").remove();
+					var rows = d3.select("tbody")
+						.selectAll("tr")
+						.data(data)
+						.enter()
+						.append("tr");
+						
+					rows.append("td")
+						.text(function(d) {return d.Rank;});
+						
+					rows.append("td")
+						.text(function(d) {return d['Position Rank'];});
+						
+					rows.append("td")
+						.append("a")
+						.attr("href",function(d) {return "players.html?player=" + d.Player.split(' ').join('-')+"&position="+d.Position;})
+						.text(function(d) {return d.Player;});
+						
+					rows.append("td")
+						.text(function(d) {return d.Position;});
+						
+					rows.append("td")
+						.text(function(d) {return d.Teams;});
+						
+					rows.append("td")
+						.text(function(d) {return d.Years;});
+						
+					rows.append("td")
+						.text(function(d) {return d.Points;});
+						
+					rows.append("td")
+						.text(function(d) {return d['Most Used By'];});
+						
+					rows.append("td")
+						.text(function(d) {return d.Wins;});
+						
+					rows.append("td")
+						.text(function(d) {return d['Win %'];});
+						
+					rows.append("td")
+						.text(function(d) {return d['Unique Teams'];});
+						
+					rows.append("td")
+						.text(function(d) {return d.Championships;});
+					}
 				
-			rows.append("td")
-				.text(function(d) {return d.positionRank;});
-				
-			rows.append("td")
-				.append("a")
-				.attr("href",function(d) {return "players.html?player=" + d.statPlayer.split(' ').join('-')+"&position="+d.statPosition;})
-				.text(function(d) {return d.statPlayer;});
-				
-			rows.append("td")
-				.text(function(d) {return d.statPosition;});
-				
-			rows.append("td")
-				.text(function(d) {return d.teams;});
-				
-			rows.append("td")
-				.text(function(d) {return d.years;});
-				
-			rows.append("td")
-				.text(function(d) {return d.points;});
-				
-			rows.append("td")
-				.text(function(d) {return d.mostUsedBy;});
-		
-		});
+			});
+		}
 	</script
 </body>
 </html>

@@ -83,6 +83,100 @@
 				.append("td")
 				.text(function(d) {return d;});
 				
+			var height = 300, width = 900;
+			
+			var margins = {'top' : 5, 'bottom' : 40, 'left' : 20, 'right' : 15}
+				
+			var svg = d3.select("#bodydiv")
+				.append("svg")
+				.attr("height", height + margins.top + margins.bottom)
+				.attr("width", width + margins.left + margins.right)
+				.style("border","1px solid black")
+				.append("g")
+				.attr("transform","translate("+margins.left+","+margins.top+")");
+				
+			var yScale = d3.scaleLinear()
+				.range([height,0])
+				.domain([d3.min([0,d3.min(data,function(d) {return d.team == 'FA'?+d.faPoints:+d.scoredPoints;})]),
+					d3.max(data,function(d) {return d.team == 'FA'?+d.faPoints:+d.scoredPoints;})]);
+			console.log([d3.min([0,d3.min(data,function(d) {return d.team == 'FA'?+d.faPoints:+d.scoredPoints;})]),
+					d3.max(data,function(d) {return d.team == 'FA'?+d.faPoints:+d.scoredPoints;})]);
+			var yAxis = d3.axisLeft()
+				.scale(yScale);
+				
+			var xScale = d3.scaleBand()
+				.range([0,width])
+				.domain(d3.map(data,function(d) {return d.season;}).keys())
+				.padding(.05);
+			console.log(xScale.bandwidth());
+			var xAxis = d3.axisBottom()
+				.scale(xScale);
+				
+			svg.append("g")
+				.call(yAxis)
+				.attr("class","y axis");
+				
+			svg.append("g")
+				.call(xAxis)
+				.attr("class","x axis")
+				.attr("transform","translate(0,"+height+")")
+				
+			var weekTable = d3.select("#bodydiv")
+				.append("table")
+				.attr("class","table-bordered")
+				.attr("id","weekTable");
+				
+			var weekHead = weekTable.append("thead").append("tr");
+			var weekBody = weekTable.append("tbody");
+			
+			var weekHeads = ['Year','Week','NFL Team','La Liga Team','Bench','Points','Win','Playoffs','Draft'];
+			
+			weekHead.selectAll('th')
+				.data(weekHeads)
+				.enter()
+				.append("th")
+				.text(function(d) {return d;});
+				
+			var years = d3.map(data, function(d) {return d.season;}).keys().sort(function(a, b) {return b - a;});
+			
+			years.forEach(function(d) {
+				for(var i = 16; i >= 1; i += -1) {
+					weekTr = weekTable.append("tr");
+					weekTr.append("td").attr('align','right').text(d);
+					weekTr.append("td").attr('align','right').text(i);
+					
+					weekData = data.filter(function(v) {return v.season == d && v.week == i;})[0]
+					
+					weekTr.append("td").text(weekData?weekData.playerTeam:'');
+					weekTr.append("td").text(weekData?weekData.team:'FA');
+					weekTr.append("td").text(weekData?((weekData.team != 'FA' && weekData.bench == 'Bench')?'Y':''):'');
+					weekTr.append("td").attr('align','right').text(weekData?((weekData.team != 'FA')?Math.round(weekData.scoredPoints):Math.round(weekData.faPoints)):'');
+					weekTr.append("td").text(weekData?(
+						(weekData.team != 'FA' && weekData.winWin == 1)?'W':(
+							(weekData.team != 'FA' && weekData.winWin == 0)?'L':''
+						)
+					):'');
+					weekTr.append("td").text(weekData?weekData.playoffs:'');
+					weekTr.append("td").text(weekData?weekData.draftPlace:'');
+					var pointsScored = weekData?((weekData.team != 'FA')?Math.round(weekData.scoredPoints):Math.round(weekData.faPoints)):'';
+					var team = weekData?weekData.team:'';
+					var win = weekData?(
+						(weekData.team != 'FA' && weekData.winWin == 1)?'green':(
+							(weekData.team != 'FA' && weekData.winWin == 0)?'red':'none'
+						)
+					):'none'
+					svg.append('rect')
+						.attr("x",xScale(d)+ (i/16) * xScale.bandwidth())
+						.attr("y",yScale(d3.max([0,pointsScored])))
+						.attr("width",(xScale.bandwidth()/16)*.6)
+						.attr("height",height-yScale(+pointsScored))
+						.style("fill",team=="FA"?'grey':'blue')
+						.style("stroke",win);
+					
+				}
+			});
+				
+				
 			
 			
 			

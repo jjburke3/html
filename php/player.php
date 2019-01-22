@@ -15,7 +15,11 @@ $position = $_GET['pos'];
 
 $sql = "
 select b.*,
-winWin, playoffs
+winWin, playoffs,
+
+coalesce(concat(
+case when k.id is not null then 'Keeper ' else '' end,
+'Round ',d.draftRound,', Pick ',d.draftPick,' by ',selectingTeam),'') as draftPlace
 
 from (
 select
@@ -52,6 +56,8 @@ and statPlayer = '".$player."'
 group by player, season, week, playerPosition
 order by player, playerPosition, season, week) b
 left join la_liga_data.wins on winSeason = season and winWeek = week and winTeam = team
+left join la_liga_data.draftData d on draftYear = season and d.player = b.player and d.playerPosition = b.playerPosition
+left join la_liga_data.keepers k on k.draftYear = season and k.player = b.player
 ";
 
 
