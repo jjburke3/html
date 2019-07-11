@@ -5,44 +5,64 @@
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
 	<script src="javascript/ga.js"></script>
 	<title>Standings</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-	<link rel="stylesheet" type="text/css" href="css/navBar.css">
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<link rel="stylesheet" href="css/table-css.css">
 </head>
 <body>
-	<script src="javascript/navBar.js"></script>
-	<h1>Standings</h1>
-	<select id="typeSelect" class="pullData">
-		<option disabled>Model Type</option>
-		<option value='recentPoints' selected>Weighted Points Scored</option>
-		<option value='points' selected>Points Scored Only</option>
-		<option value='all'>Points Scored and Draft Value</option>
-		<option value='draft'>Draft Value</option>
-		<option value='coin'>Coin Flip</option>
-	</select>
-	<table id="standTable" class='table table-hover table-striped'>
-		<thead>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-	<select id="graphSelect">
-		<option disabled>Graphed Value</option>
-		<option value = 'playoffsOdds' selected>Playoffs Odds</option>
-		<option value = 'pointAverage'>Points Average</option>
-		<option value = 'exPointAverage'>Expected Points Average</option>
-		<option value = 'exWins'>Expected Wins</option>
-		<option value = 'champOdds'>Champ Odds</option>
-		<option value = 'highpoints'>High Points Odds</option>
-		<option value = 'lowPoints'>Low Points Odds</option>
-		<option value = 'firstplace'>First Place Odds</option>
-		<option value = 'bye'>First Round Bye Odds</option>
-		<option value = 'exMoney'>Expected Payout</option>
-	</select>
-	<div id="graph-div">
-		
+	<div class="body-div">
+		<div id="nav-placeholder" class="sticky-top"></div>
+		<script src="javascript/navBar.js"></script>
+		<h1>Standings</h1>
+		<div style="display: flex">
+			<select id="typeSelect" class="pullData">
+				<option disabled>Model Type</option>
+				<option value='recentPoints' selected>Weighted Points Scored</option>
+				<option value='points' selected>Points Scored Only</option>
+				<option value='all'>Points Scored and Draft Value</option>
+				<option value='draft'>Draft Value</option>
+				<option value='coin'>Coin Flip</option>
+			</select>
+			<select id="yearSelect" class="pullData">
+				<option disabled>Select Year</option>
+				<option value=9999 selected>Current</option>
+			</select>
+			<select id="weekSelect" class="pullData">
+				<option disabled>Select Week</option>
+				<option value=9999 selected>Current</option>
+			</select>
+			<button id="tableButton" type="button" class="btn btn-primary">Table</button>
+			<button id="graphButton" type="button" class="btn btn-outline-primary">Graph</button>
+		</div>
+		<div class="table-container">
+			<table id="standTable" class='table table-hover table-striped'>
+				<thead>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+		<div class="total-graph-div" style="display:none;">
+			<select id="graphSelect">
+				<option disabled>Graphed Value</option>
+				<option value = 'playoffsOdds' selected>Playoffs Odds</option>
+				<option value = 'pointAverage'>Points Average</option>
+				<option value = 'exPointAverage'>Expected Points Average</option>
+				<option value = 'exWins'>Expected Wins</option>
+				<option value = 'champOdds'>Champ Odds</option>
+				<option value = 'highpoints'>High Points Odds</option>
+				<option value = 'lowPoints'>Low Points Odds</option>
+				<option value = 'firstplace'>First Place Odds</option>
+				<option value = 'bye'>First Round Bye Odds</option>
+				<option value = 'exMoney'>Expected Payout</option>
+			</select>
+			<div id="graph-div">
+				
+			</div>
+		</div>
 	</div>
 	<script>
 		//League winner data
@@ -51,6 +71,24 @@
 					  'bottom' : 50,
 					  'left' : 40,
 					  'right' : 20}
+		d3.select("#tableButton")
+			.on("click",function() {
+				d3.select(this).classed("btn-primary",true);
+				d3.select(this).classed("btn-outline-primary",false);
+				d3.select("#graphButton").classed("btn-primary",false);
+				d3.select("#graphButton").classed("btn-outline-primary",true);
+				d3.select(".table-container").style("display","block");
+				d3.select(".total-graph-div").style("display","none");
+			});
+		d3.select("#graphButton")
+			.on("click",function() {
+				d3.select(this).classed("btn-primary",true);
+				d3.select(this).classed("btn-outline-primary",false);
+				d3.select("#tableButton").classed("btn-primary",false);
+				d3.select("#tableButton").classed("btn-outline-primary",true);
+				d3.select(".table-container").style("display","none");
+				d3.select(".total-graph-div").style("display","block");
+			});
 		d3.selectAll("select.pullData")
 			.on("change",returnValues);
 		returnValues();

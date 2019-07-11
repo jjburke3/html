@@ -1,0 +1,19 @@
+
+		.body-div {
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		th {
+			border-bottom: 2px solid #dee2e6;
+			background-color: white;
+			position: sticky;
+			top: 0;
+		}
+		.container-fluid {
+			flex-shrink: 1;
+		}
+		.table-container, .total-graph-div {
+			overflow:auto; 
+			flex-shrink: 1;
+		}
