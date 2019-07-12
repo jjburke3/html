@@ -21,7 +21,7 @@ left join la_liga_data.keepers k on
 d.draftYear = k.draftYear
 and d.selectingTeam = k.team
 and d.draftRound = k.draftRound
-and d.draftPick = k.draftPick
+and d.player = k.player
 
 where d.draftYear > 2010
 
