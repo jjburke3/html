@@ -14,7 +14,7 @@ select
 group_concat(distinct(draftYear)) as possibleYears,
 group_concat(distinct(draftRound)) as possibleRounds,
 group_concat(distinct(selectingTeam)) as possibleTeams
-from la_liga_data.draftdata
+from la_liga_data.draftData
 where draftYear > 2010
 ";
 

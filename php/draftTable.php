@@ -16,7 +16,7 @@ d.draftPick,
 d.selectingTeam,
 ifnull(nullif(d.player,''),k.player) as player,
 ifnull(nullif(d.playerPosition,''),k.position) as playerPosition,
-case when k.id is null then 'N' else 'Y' end as keeper from la_liga_data.draftdata d
+case when k.id is null then 'N' else 'Y' end as keeper from la_liga_data.draftData d
 left join la_liga_data.keepers k on 
 d.draftYear = k.draftYear
 and d.selectingTeam = k.team
