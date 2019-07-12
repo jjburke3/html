@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Keepers Data</title>
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<link rel="stylesheet" href="css/table-css.css">
+</head>
+<body>
+	<div class="body-div">
+		<div id="nav-placeholder" class="sticky-top"></div>
+		<script src="javascript/navBar.js"></script>
+		<h1>Drafts</h1>
+		<div class="row">
+			<div class="column">
+				<select id = "selectYear" class="form-control">
+					<option disabled>Select Year</option>
+					<option value='all'>All</option>
+				</select>
+			</div>
+			<div class="column">
+				<select id = "selectTeam" class="form-control">
+					<option disabled>Select Team</option>
+					<option value='all'>All</option>
+				</select>
+			</div>
+			<div class="column">
+				<select id = "selectRound" class="form-control">
+					<option disabled>Select Round</option>
+					<option value='all'>All</option>
+				</select>
+			</div>
+			<div class="column">
+				<select id = "selectPosition" class="form-control">
+					<option disabled>Select Position</option>
+					<option value='all'>All</option>
+					<option value='QB'>QB</option>
+					<option value='RB'>RB</option>
+					<option value='WR'>WR</option>
+					<option value='TE'>TE</option>
+					<option value='K'>K</option>
+					<option value='D/ST'>D/ST</option>
+				</select>
+			</div>
+			<div class="column">
+				<input id="playerSearch" class="form-control mr-sm-2" type="text" placeholder="Search Player" aria-label="Search Player">
+			</div>
+		</div>
+		<div class="table-container">
+			<table id="resultsTable" class='table table-hover table-striped'>
+				<thead>
+					<tr>
+						<th>Year</th>
+						<th>Team</th>
+						<th>Round</th>
+						<th>Pick</th>
+						<th>Player</th>
+						<th>Position</th>
+						<th>Keeper</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<script>
+		//League winner data
+		var colors = {'QB' : 'lightblue', 'RB' : 'pink', 'WR' : 'lightgreen', 'TE' : 'lemonchiffon', 'K' : 'orange', 'D/ST' : 'violet'}
+		
+		var d3Champs = d3.json("php/draftTable.php").then(function(data) {
+		
+		var selectSetup = d3.json("php/draftSetUp.php").then(function(setUp) {
+		
+			d3.select("#selectTeam")
+				.selectAll(".other")
+				.data(setUp[0]["possibleTeams"].split(","))
+				.enter()
+				.append("option")
+					.property("value",function(d) {return d;})
+					.text(function(d) {return d;});
+		
+			d3.select("#selectYear")
+				.selectAll(".other")
+				.data(setUp[0]["possibleYears"].split(","))
+				.enter()
+				.append("option")
+					.property("value",function(d) {return d;})
+					.text(function(d) {return d;});
+		
+			d3.select("#selectRound")
+				.selectAll(".other")
+				.data(setUp[0]["possibleRounds"].split(","))
+				.enter()
+				.append("option")
+					.property("value",function(d) {return d;})
+					.text(function(d) {return d;});
+		
+			d3.selectAll("select")
+				.on("change",updateTable);
+			updateTable();
+			
+			d3.select("#playerSearch")
+				.on("input",function() {
+					var search = d3.select(this).property("value").toLowerCase();
+					console.log(search);
+					d3.select("tbody")
+						.selectAll("tr")
+						.style("display","none");
+					d3.select("tbody")
+						.selectAll("tr")
+						.filter(function(d) {
+							string = d3.select(this).selectAll("td:nth-child(5)").text().toLowerCase();
+							testString = new RegExp(search,"g");
+							return testString.test(string);})
+						.style("display","table-row");
+				});
+			
+			function updateTable() {
+			
+			var pos = d3.select("#selectPosition").property("value");
+			var round = d3.select("#selectRound").property("value");
+			var year = d3.select("#selectYear").property("value");
+			var team = d3.select("#selectTeam").property("value");
+			
+			d3.select("#resultsTable").select("tbody")
+						.selectAll("tr").remove();
+			var trs = d3.select("#resultsTable").select("tbody")
+						.selectAll("tr")
+						.data(data.filter(
+							function(d) {
+								return (d.playerPosition == pos || pos == 'all') &&
+									(d.draftYear == year || year == 'all') &&
+									(d.selectingTeam == team || team == 'all') &&
+									(d.draftRound == round || round == 'all');
+							})
+						)
+						.enter()
+						.append("tr")
+						.style("background-color",function(d) {return colors[d.playerPosition];})
+						.style("border",function(d) {return d.keeper == "Y"?'2px solid black':'1px solid lightgrey';});
+						
+			trs.append("td")
+				.text(function(d) {return d.draftYear;});
+			trs.append("td")
+				.text(function(d) {return d.selectingTeam;});
+			trs.append("td")
+				.text(function(d) {return d.draftRound;});
+			trs.append("td")
+				.text(function(d) {return d.draftPick;});
+			trs.append("td")
+				.text(function(d) {return d.player;});
+			trs.append("td")
+				.text(function(d) {return d.playerPosition;});
+			trs.append("td")
+				.text(function(d) {return d.keeper;});
+				
+			}
+		});
+		});
+	</script
+</body>
+</html>

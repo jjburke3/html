@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Radar Charts</title>
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/1.4.0/regression.min.js"></script>
+	<link rel="stylesheet" href="css/table-css.css">
+	<style>
+		.hidden {
+			display:none;
+			}
+			
+		 #tooltip {
+        position: absolute;
+        width: auto;
+        height: auto;
+        padding: 10px;
+		padding-left: 25px;
+        background-color: #E6DEDC;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+		opacity: .95;
+}
+		.container {
+			display:flex;
+			flex-shrink: 1;
+		}
+		
+		.container-vert {
+			display:flex;
+			flex-direction: column;
+			border-radius: 5px;
+			flex-grow: 1;
+			flex-shrink: 1;
+			justify-content: center;
+			border: 2px solid;
+		}
+		
+		.container-vert * {
+			display: flex;
+			flex-grow: 1;
+			flex-shrink: 1;
+			align-self: center;
+		}
+		
+		.svgDiv {
+			margin: 5px;
+			border: 1px solid black;
+			flex-shrink: 2;
+			flex-grow:1 ;
+			display:flex;
+		}
+		.svgDiv2 {
+			flex-shrink:1;
+			flex-grow:1;
+		
+		.row {
+			display: flex;
+		}
+		
+		.column {
+			flex-shrink: 1;
+		}
+	</style>
+</head>
+<body>
+	<div class="body-div">
+		<div id="nav-placeholder" class="sticky-top"></div>
+		<script src="javascript/navBar.js"></script>
+		<div class="container options-container">
+			<div class="container-vert" style="border-color: black; background-color: lightgrey;">
+				<label>Include:</label>
+				<label>Player:</label>
+				<label>Year Range:</label>
+				<label>Week Range:</label>
+			</div>
+			<div class="container-vert" style = "border-color: red; background-color: pink;">
+				<div class="form-check position-static">
+					<input class="form-check-input position-static" type="checkbox" checked id="include1" disabled>
+				</div>
+				<select class="form-control playerSelect" id = 'playerSelect1'>
+					<option class='perm' value='all'>Average</option>
+				</select>
+				<div class="row">
+					<div class="column">
+						<select class="form-control yearSelect" id = 'yearStart1'>
+						</select>
+					</div>
+					<div class="column">
+						<select class="form-control yearSelect" id = 'yearEnd1'>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="column">
+						<select class="form-control weekSelect start" id = 'weekStart1'>
+						</select>
+					</div>
+					<div class="column">
+						<select class="form-control weekSelect end" id = 'weekEnd1'>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="container-vert" style = "border-color: blue; background-color: lightblue;">		
+				<div class="form-check position-static">
+					<input class="form-check-input position-static" type="checkbox" id="include2">
+				</div>
+				<select class="form-control playerSelect" id = 'playerSelect2' disabled>
+					<option class='perm' value='all'>Average</option>
+				</select>
+				<div class="row">
+					<div class="column">
+						<select class="form-control yearSelect" id = 'yearStart2' disabled>
+						</select>
+					</div>
+					<div class="column">
+						<select class="form-control yearSelect" id = 'yearEnd2' disabled>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="column">
+						<select class="form-control weekSelect start" id = 'weekStart2' disabled>
+						</select>
+					</div>
+					<div class="column">
+						<select class="form-control weekSelect end" id = 'weekEnd2' disabled>
+						</select>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="svgDiv">
+			<div class="svgDiv2">
+				<svg height="100%" width="100%" style="display:block"></svg>
+			</div>
+		</div>
+	
+		<div id="tooltip" class="hidden"></div>
+	</div>
+	<script>
+			
+		var containerColors = {
+			1: {'border' : 'red', 'background-color' : 'pink'},
+			2: {'border' : 'blue', 'background-color' : 'lightblue'},
+			3: {'border' : 'green', 'background-color' : 'lightgreen'},
+			4: {'border' : 'darkorange', 'background-color' : 'orange'},
+			5: {'border' : 'purple', 'background-color' : 'violet'},
+			6: {'border' : 'saddlebrown', 'background-color' : 'sandybrown'},
+			7: {'border' : 'cyan', 'background-color' : 'lightcyan'}
+		}
+			
+		var dataPoints = []
+		
+		
+		function pullData(team,weekRange,yearRange,index) {
+			console.log(team)
+			console.log(weekRange)
+			console.log(yearRange)
+			console.log(index)
+			var dataPull = d3.json("php/radarCharts.php?team="+team+
+				"&week="+weekRange[0]+" and " +weekRange[1] + 
+				"&year=" + yearRange[0] + " and " + yearRange[1] ).then(function(data) {
+				dataPoints[index] =
+					{'id' : team, 
+					'd1' : +data[2]['points'],
+					'd2' :+data[3]['points'],
+					'd3' :+data[5]['points'],
+					'd4' :+data[4]['points'],
+					'd5' :+data[1]['points'],
+					'd6' :+data[0]['points']
+					}
+				
+				drawRadar();
+			
+			});
+			
+		
+		}
+		
+		d3.selectAll("select")
+			.on('change',changeSelect);
+		
+		function changeSelect() {
+			var s = d3.select(this).attr("id").slice(-1);
+			pullData(d3.select("#playerSelect"+s).property("value"),
+					[d3.select("#weekStart"+s).property("value"),d3.select("#weekEnd"+s).property("value")],
+					[d3.select("#yearStart"+s).property("value"),d3.select("#yearEnd"+s).property("value")],
+					s-1
+				);
+		
+		};
+		
+		
+		function drawRadar() {
+		
+			var svg = d3.select("svg");
+			var svgHeight = Number(svg.style("height").slice(0,-2));
+			var svgWidth = Number(svg.style("width").slice(0,-2));
+			
+			radars = [-50,-25,0,25,50];
+			
+			function radarLines(r) {
+				return d3.lineRadial()([
+					[3.14*(1/6), r[0]],
+					[3.14*(3/6), r[1]],
+					[3.14*(5/6), r[2]],
+					[3.14*(7/6), r[3]],
+					[3.14*(9/6), r[4]],
+					[3.14*(11/6), r[5]],
+					[3.14*(1/6), r[0]]
+				])
+			
+			}
+			
+			rRange = (d3.min([svgHeight,svgWidth])*.9)/2;
+			
+			rScale = d3.scaleLinear()
+				.domain([-50,50])
+				.range([1,rRange]);
+			
+			var scaleLines = svg.selectAll("path.scale")
+				.data(radars)
+				.attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")")
+				.attr("d",
+					function(d) {
+					r = rScale(d)
+					return radarLines([r,r,r,r,r,r]);
+					}
+				);
+				
+			scaleLines.enter()
+				.append("path")
+				.attr("class","scale")
+				.attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")")
+				.attr("d",
+					function(d) {
+					r = rScale(d)
+					return radarLines([r,r,r,r,r,r]);
+					}
+				)
+				.style("fill","none")
+				.style("stroke","black");
+				
+			var dataLines = svg.selectAll("path.dataLine")
+				.data(dataPoints)
+				.attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")")
+				.attr("d",
+					function(d) {
+					return radarLines([rScale(d.d1),rScale(d.d2),
+						rScale(d.d3),rScale(d.d4),
+						rScale(d.d5),rScale(d.d6)]);
+					}
+				);
+				
+			dataLines.enter()
+				.append("path")
+				.attr("class","dataLine")
+				.attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")")
+				.attr("d",
+					function(d) {
+					return radarLines([rScale(d.d1),rScale(d.d2),
+						rScale(d.d3),rScale(d.d4),
+						rScale(d.d5),rScale(d.d6)]);
+					}
+				)
+				.style("fill",function(d,i) {return containerColors[i+1]["background-color"];})
+				.style("stroke",function(d,i) {return containerColors[i+1]["border"];})
+				.style("fill-opacity",0.2);
+				
+			dataLines.exit().remove();
+				
+		
+		}
+		
+		
+			
+		window.addEventListener("resize", drawRadar);
+		var selectSetup = d3.json("php/radarSetUp.php").then(function(setUp) {
+		
+			var teams = setUp[0]["possibleTeams"].split(",");
+			
+			var weeks = [];
+			
+			var years = [];
+			
+			for (i = 1; i <= 16; i++) {
+				weeks.push(i);
+			}
+			
+			for (i = Number(setUp[0]["yearStart"]); i <= Number(setUp[0]["yearEnd"]); i++) {
+				years.push(i);
+			}
+			
+			function selections() {
+				d3.selectAll(".playerSelect")
+					.selectAll("option:not(.perm)")
+					.data(teams)
+					.enter()
+					.append("option")
+					.text(function(d) {return d;})
+					.property("value",function(d) {return d;});
+					
+				d3.selectAll(".weekSelect.start")
+					.selectAll("option")
+					.data(weeks.sort(function(a, b) {return d3.ascending(a, b);}))
+					.enter()
+					.append("option")
+					.text(function(d) {return d;})
+					.property("value",function(d) {return d;});
+					
+				d3.selectAll(".weekSelect.end")
+					.selectAll("option")
+					.data(weeks.sort(function(a, b) {return d3.descending(a, b);}))
+					.enter()
+					.append("option")
+					.text(function(d) {return d;})
+					.property("value",function(d) {return d;});
+					
+				d3.selectAll(".yearSelect")
+					.selectAll("option")
+					.data(years.sort(function(a, b) {return d3.descending(a, b);}))
+					.enter()
+					.append("option")
+					.text(function(d) {return d;})
+					.property("value",function(d) {return d;});
+			}
+			
+			selections();
+			
+			d3.selectAll(".form-check-input")
+				.on("change",checkBoxFunc);
+				
+				
+			function checkBoxFunc() {
+				var count = Number(d3.select(this).attr("id").slice(-1)) + 1;
+				var checked = d3.select(this).property("checked");
+				if (checked==true) {
+								
+					d3.selectAll(".container-vert")
+						.filter(function(d, i) {return i == count - 1;})
+						.selectAll("select")
+							.property("disabled",false);
+				
+				
+					if (count <= 7) {
+						var containerVert = d3.select(".options-container")
+							.append("div")
+							.attr("class","container-vert")
+							.style("border-color",containerColors[count]['border'])
+							.style("background-color",containerColors[count]['background-color']);
+							
+						containerVert.append("div")
+							.attr("class","form-check position-static")
+							.append("input")
+								.attr("class","form-check-input position-static")
+								.attr("type","checkbox")
+								.attr("id","include" + count)
+								.on("change",checkBoxFunc);
+								
+						containerVert.append("select")
+							.attr("class","form-control playerSelect")
+							.attr("id","playerSelect" + count)
+							.property("disabled",true)
+							.property("value",d3.select("#playerSelect1").property("value"))
+							.on('change',changeSelect)
+							.append("option")
+								.attr("class","perm")
+								.attr("value","all")
+								.text("Average");
+						
+					
+						var row1 = containerVert.append("div")
+							.attr("class","row");
+								
+						var row2 = containerVert.append("div")
+							.attr("class","row");
+							
+						row1.append("div")
+							.attr("class","column")
+							.append("select")
+								.attr("class","form-control yearSelect")
+								.attr("id","yearStart" + count)
+								.property("disabled",true)
+								.on('change',changeSelect);
+							
+						row1.append("div")
+							.attr("class","column")
+							.append("select")
+								.attr("class","form-control yearSelect")
+								.attr("id","yearEnd" + count)
+								.property("disabled",true)
+								.on('change',changeSelect);
+							
+						row2.append("div")
+							.attr("class","column")
+							.append("select")
+								.attr("class","form-control weekSelect start")
+								.attr("id","weekStart" + count)
+								.property("disabled",true)
+								.on('change',changeSelect);
+							
+						row2.append("div")
+							.attr("class","column")
+							.append("select")
+								.attr("class","form-control weekSelect end")
+								.attr("id","weekEnd" + count)
+								.property("disabled",true)
+								.on('change',changeSelect);
+					}
+					
+						selections();
+						
+						
+			var s = d3.select(this).attr("id").slice(-1);
+			pullData(d3.select("#playerSelect"+s).property("value"),
+					[d3.select("#weekStart"+s).property("value"),d3.select("#weekEnd"+s).property("value")],
+					[d3.select("#yearStart"+s).property("value"),d3.select("#yearEnd"+s).property("value")],
+					s-1
+				);
+							
+				} else if (checked == false) {
+					d3.selectAll(".container-vert")
+						.filter(function(d, i) {return i >= count;})
+						.remove();
+							
+					d3.selectAll(".container-vert")
+						.filter(function(d, i) {return i == count - 1;})
+						.selectAll("select")
+							.property("disabled",true);
+							
+					dataPoints = dataPoints.slice(0,count-2);
+					drawRadar();
+				}
+			};
+			
+			pullData(d3.select("#playerSelect1").property("value"),
+					[d3.select("#weekStart1").property("value"),d3.select("#weekEnd1").property("value")],
+					[d3.select("#yearStart1").property("value"),d3.select("#yearEnd1").property("value")],
+					0
+				);
+			
+		});
+		
+	</script
+</body>
+</html>

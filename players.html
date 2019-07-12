@@ -11,15 +11,43 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 	<script src="https://d3js.org/d3.v5.min.js"></script>
 	<link rel="stylesheet" href="css/table-css.css">
+	<link rel="stylesheet" href="css/scatter_plot.css">
+	<style>
+			.hidden {
+			display:none;
+			}
+			
+		 #tooltip {
+			position: absolute;
+			width: auto;
+			height: auto;
+			padding: 10px;
+			padding-left: 25px;
+			background-color: #E6DEDC;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border-radius: 10px;
+			-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+			pointer-events: none;
+			opacity: .95;
+			z-index: 999999999
+		}
+		.table-container {
+			flex-shrink: 5;
+		}
+	</style>
 </head>
-<body>	<div id="nav-placeholder" class="sticky-top"></div>
-	<script src="javascript/navBar.js"></script>
-	<div id='bodydiv'>
+<body>	
+	<div class="body-div">
+		<div id="nav-placeholder" class="sticky-top"></div>
+		<script src="javascript/navBar.js"></script>
 		<div id='bodyHeadDiv'>
 			<h1 id = 'playerTitle'></h1>
 		</div>
+		<div id="tooltip" class="hidden"></div>
 	</div>
-	<div id="tooltip" class="hidden"></div>
 	<script>
 		var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', 
 			'#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', 	
@@ -48,7 +76,7 @@
 		request.send();
 		var dataPull = d3.json("php/player.php?player="+urlParams.get('player')+"&pos="+urlParams.get('position')).then(function(data) {
 			console.log(data);
-			var table = d3.select("#bodydiv")
+			var table = d3.select(".body-div")
 				.append("table")
 				.attr("class","table-bordered")
 				.style("margin-left","5px");
@@ -91,12 +119,14 @@
 				.append("td")
 				.html(function(d) {return d;});
 				
-			var height = 300, width = 900;
+			var height = 250, width = 900;
 			
 			var margins = {'top' : 5, 'bottom' : 40, 'left' : 20, 'right' : 15}
 				
-			var svg = d3.select("#bodydiv")
+			var svg = d3.select(".body-div")
+				.append("div")
 				.append("svg")
+				.attr("class","barChart")
 				.attr("height", height + margins.top + margins.bottom)
 				.attr("width", width + margins.left + margins.right)
 				.style("border","1px solid black")
@@ -129,7 +159,9 @@
 				.attr("class","x axis")
 				.attr("transform","translate(0,"+height+")")
 				
-			var weekTable = d3.select("#bodydiv")
+			var weekTable = d3.select(".body-div")
+				.append("div")
+				.attr("class","table-container")
 				.append("table")
 				.attr("class","table-bordered")
 				.attr("id","weekTable");
