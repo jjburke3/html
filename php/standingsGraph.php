@@ -31,7 +31,8 @@ standWeek, wins, losses, tie, pointsScored, pointAverage, exPointAverage, exWins
 exMoney
 from analysis.standings
 where standType = '".$_GET['type']."'
-	and standYear = 2019
+	and standYear = ".$_GET['year']."
+	and standWeek <= ".$_GET['week']."
 ";
 $result = mysqli_query($conn,$sql);
 $data = array();

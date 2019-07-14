@@ -72,7 +72,8 @@ substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',
 substring_index(substring_index(group_concat(exMoney order by standWeek desc separator '|'),'|',2),'|',-1) as exMoney2
 from analysis.standings
 where standType = '".$_GET['type']."'
-	and standYear = 2019
+	and standYear = ".$_GET['year']."
+	and standWeek <= ".$_GET['week']."
 group by 1) b
 order by playoffsOdds desc,
 champOdds desc

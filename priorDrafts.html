@@ -48,6 +48,14 @@
 					<option value='D/ST'>D/ST</option>
 				</select>
 			</div>
+			<div class = "column">
+				<select id = "orderSelect" class = "form-control">
+					<option disabled>Select Order</option>
+					<option value="pick">Actual Pick</option>
+					<option value="redraft">Redraft Pick</option>
+					<option value="points">Points Scored</option>
+				</select>
+			</div>
 			<div class="column">
 				<input id="playerSearch" class="form-control mr-sm-2" type="text" placeholder="Search Player" aria-label="Search Player">
 			</div>
@@ -63,6 +71,8 @@
 						<th>Player</th>
 						<th>Position</th>
 						<th>Keeper</th>
+						<th>Redraft Pick-Round</th>
+						<th>Points</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -128,6 +138,7 @@
 			var round = d3.select("#selectRound").property("value");
 			var year = d3.select("#selectYear").property("value");
 			var team = d3.select("#selectTeam").property("value");
+			var order = d3.select("#orderSelect").property("value");
 			
 			d3.select("#resultsTable").select("tbody")
 						.selectAll("tr").remove();
@@ -139,6 +150,19 @@
 									(d.draftYear == year || year == 'all') &&
 									(d.selectingTeam == team || team == 'all') &&
 									(d.draftRound == round || round == 'all');
+							}).sort(function(a,b) {
+								
+								switch(order) {
+									case 'pick':
+										return d3.ascending(a.draftYear,b.draftYear) || d3.ascending(+a.draftPick,+b.draftPick);
+										break;
+									case 'redraft':
+										return d3.ascending(a.draftYear,b.draftYear) || d3.ascending(+a.absRedraft,+b.absRedraft);
+										break;
+									case 'points':
+										return d3.ascending(a.draftYear,b.draftYear) || d3.descending(+a.points,+b.points);
+										break;
+								}
 							})
 						)
 						.enter()
@@ -160,6 +184,10 @@
 				.text(function(d) {return d.playerPosition;});
 			trs.append("td")
 				.text(function(d) {return d.keeper;});
+			trs.append("td")
+				.text(function(d) {return d.redraft;});
+			trs.append("td")
+				.text(function(d) {return d.points;});
 				
 			}
 		});
