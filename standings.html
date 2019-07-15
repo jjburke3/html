@@ -69,7 +69,7 @@
 					  'bottom' : 50,
 					  'left' : 40,
 					  'right' : 20}
-		var d3Selects = d3.json("php/setUpStandings.php").then(function(setUp) {
+		var d3Selects = d3.json("php/setupStandings.php").then(function(setUp) {
 				d3.select("#yearSelect")
 					.selectAll(".addons")
 					.data(setUp.sort(function(a,b) {return d3.descending(a.standYear,b.standYear);}))
