@@ -11,21 +11,22 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
+
 select averageRank, player, position, team, lastYearTeams,
 lastYearPoints, age, experience, bye,
 chartRanking,
-case when keepPlayer is not null then 'K' else selected end as selected,
+case when keepPlayer is not null then 'K' else '' end as selected,
 averageADP, averagePosRank,
 espnRank, calcADP, ffDataRank,
 ffDataADP, ffDataPosRank,
 ffaRank, ffaPosRank, ffaECR, ffaPosECR, projProjected
- from draft.availplayers a
+ from draft.availPlayers a
 left join draft.allRankings b on rankPlayer = player
 	and rankPosition = position
 left join draft.keepers on keepPlayer = player and keepPosition = position
-left join depthChart on chartSeason = 2018
+left join draft.depthChart on chartSeason = 2018
 	and replace(chartPlayer,'.','') = replace(player,'.','') and chartPosition = position
-left join projections on projPlayer = player
+left join draft.projections on projPlayer = player
 	and projPosition = position
 order by ifnull(averageRank,999999) asc;
 

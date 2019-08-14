@@ -11,7 +11,7 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select * from depthChart where chartSeason = 2018;
+select * from draft.depthchart where chartSeason = 2018;
 
 
 

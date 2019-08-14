@@ -10,9 +10,9 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select * from projections
-left join availPlayers on player=projPlayer and position = projPosition
-left join keepers on keepPlayer = projPlayer and keepPosition = projPosition;
+select * from draft.projections
+left join draft.availplayers on player=projPlayer and position = projPosition
+left join draft.keepers on keepPlayer = projPlayer and keepPosition = projPosition;
 
 
 
