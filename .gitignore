@@ -4,3 +4,6 @@ draftCheatSheet.html
 data/
 *.xlsx
 *.xlsm
+json/draftData.json
+php/writeJSON.php
+php/draftCheatSheet.php

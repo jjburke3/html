@@ -25,7 +25,7 @@ left join la_liga_data.keepers k on
 d.draftYear = k.draftYear
 and d.selectingTeam = k.team
 and d.draftRound = k.draftRound
-and d.player = k.player
+and (d.player = k.player or (d.player = '' and d.draftPick = k.draftPick))
 left join (select statYear, statPlayer, statPosition, netPoints, points,reDraft as absRedraft,
 case when round(1+(redraft-mod(reDraft,14))/14,0) <= 15 or statYear <= 2013 and round(1+(redraft-mod(reDraft,14))/14,0) <= 16 then
 concat('Round:',round(1+(redraft-mod(reDraft-1,14))/14,0),' Pick:',1+mod(reDraft-1,14))
