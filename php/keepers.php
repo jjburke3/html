@@ -29,7 +29,7 @@ from scrapped_data.playerStats
 where statWeek < 17
 group by 1,2,3) b on statYear = draftYear and statPlayer = player and statPosition = position
 left join analysis.replacementValue on replaceYear = draftYear and replacePosition = position
-where draftYear <= 2018
+where draftYear <= 2019
 group by 1
 order by 2 desc;
 
