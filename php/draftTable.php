@@ -43,7 +43,7 @@ from scrapped_data.playerStats
 where statWeek < 17
 group by 1,2,3) b
 left join analysis.replacementValue on replaceYear = statYear and replacePosition = statPosition
-where statYear between 2011 and 2018
+where statYear >= 2011
 order by statYear, points - replacePoints desc) b
 join (select @row := 0, @label := 0) t) b) b on statYear = d.draftYear and statPlayer = d.player and statPosition = playerPosition
 
