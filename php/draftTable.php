@@ -57,7 +57,7 @@ case when round(1+(redraft-mod(reDraft,14))/14,0) <= 15 or statYear <= 2013 and 
 concat('Round:',round(1+(redraft-mod(reDraft-1,14))/14,0),' Pick:',1+mod(reDraft-1,14))
 else 'Undrafted' end
 as redraft,
-points,
+round(points,0),
 ifnull(redraft,99999) as absRedraft,
 netPoints
 from (
