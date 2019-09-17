@@ -59,6 +59,9 @@
 			<div class="column">
 				<input id="playerSearch" class="form-control mr-sm-2" type="text" placeholder="Search Player" aria-label="Search Player">
 			</div>
+			<div class="column">
+				<input type="checkbox" value=1 id="undrafted">Include Undrafted
+			</div>
 		</div>
 		<div class="table-container">
 			<table id="resultsTable" class='table table-hover table-striped'>
@@ -116,6 +119,9 @@
 				.on("change",updateTable);
 			updateTable();
 			
+			d3.selectAll("input")
+				.on("change",updateTable);
+			
 			d3.select("#playerSearch")
 				.on("input",function() {
 					var search = d3.select(this).property("value").toLowerCase();
@@ -133,12 +139,12 @@
 				});
 			
 			function updateTable() {
-			
 			var pos = d3.select("#selectPosition").property("value");
 			var round = d3.select("#selectRound").property("value");
 			var year = d3.select("#selectYear").property("value");
 			var team = d3.select("#selectTeam").property("value");
 			var order = d3.select("#orderSelect").property("value");
+			var undraft = d3.select("#undrafted").property("checked")
 			
 			d3.select("#resultsTable").select("tbody")
 						.selectAll("tr").remove();
@@ -149,7 +155,8 @@
 								return (d.playerPosition == pos || pos == 'all') &&
 									(d.draftYear == year || year == 'all') &&
 									(d.selectingTeam == team || team == 'all') &&
-									(d.draftRound == round || round == 'all');
+									(d.draftRound == round || round == 'all') &&
+									(d.draftRound != "Undrafted" || undrafted);
 							}).sort(function(a,b) {
 								
 								switch(order) {
