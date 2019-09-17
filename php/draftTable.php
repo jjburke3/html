@@ -49,6 +49,34 @@ join (select @row := 0, @label := 0) t) b) b on statYear = d.draftYear and statP
 
 
 where d.draftYear > 2010
+union all
+
+select statYear, 'Undrafted' as draftRound, 'Undrafted' as draftPick,
+'Undrafted' as selectingTeam, statPlayer, statPosition, 'N' as keeper,
+case when round(1+(redraft-mod(reDraft,14))/14,0) <= 15 or statYear <= 2013 and round(1+(redraft-mod(reDraft,14))/14,0) <= 16 then
+concat('Round:',round(1+(redraft-mod(reDraft-1,14))/14,0),' Pick:',1+mod(reDraft-1,14))
+else 'Undrafted' end
+as redraft,
+points,
+ifnull(redraft,99999) as absRedraft,
+netPoints
+from (
+select b.*,
+@row := if(@label = statYear, @row + 1,1) as reDraft,
+@label := statYear
+from (
+select statYear, statPlayer, statPosition, 
+ifnull(points,0) - replacePoints as netPoints, ifnull(points,0) as points from
+(select statYear, statPlayer, statPosition, sum(totalPoints) as points
+from scrapped_data.playerStats
+where statWeek < 17
+group by 1,2,3) b
+left join analysis.replacementValue on replaceYear = statYear and replacePosition = statPosition
+where statYear >= 2011
+order by statYear, points - replacePoints desc) b
+join (select @row := 0, @label := 0) t) b
+left join la_liga_data.draftData on statYear = draftYear and statPlayer = player and statPosition = playerPosition
+where draftYear is null and reDraft <= 100
 
 
 ";
