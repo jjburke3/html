@@ -156,7 +156,7 @@
 									(d.draftYear == year || year == 'all') &&
 									(d.selectingTeam == team || team == 'all') &&
 									(d.draftRound == round || round == 'all') &&
-									(d.draftRound != "Undrafted" || undrafted);
+									(d.draftRound != "Undrafted" || undrafted == true);
 							}).sort(function(a,b) {
 								
 								switch(order) {
