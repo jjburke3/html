@@ -186,7 +186,7 @@
 			trs.append("td")
 				.text(function(d) {return d.draftPick;});
 			trs.append("td")
-				.text(function(d) {return d.player;});
+				.html(function(d) {return "<a href='players.html?player="+d.player+"&position="+d.playerPosition+"' target='_blank'>"+d.player+"</a>";});
 			trs.append("td")
 				.text(function(d) {return d.playerPosition;});
 			trs.append("td")
