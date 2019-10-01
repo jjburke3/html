@@ -23,7 +23,7 @@ case when k.id is not null then 'Keeper ' else '' end,
 
 from (
 select
-player, 
+player, substring_index(group_concat(distinct(playerId)),',',1) as playerId,
 case when count(case when team != 'FA' then 1 end) > 0 then
 group_concat(distinct(case when team != 'FA' then team end))
 else group_concat(distinct(team)) end as team,
@@ -39,7 +39,7 @@ else group_concat(distinct(slot)) end as bench,
 sum(points) as scoredPoints,
 sum(otherPoints) as faPoints
 from (
-select player, team, season, week, playerTeam, playerPosition, 
+select player, playerId, team, season, week, playerTeam, playerPosition, 
 case when playerSlot in ('Bench','IR') then 'Bench' else '' end as slot,
 points, null as otherPoints
 
@@ -47,7 +47,7 @@ from la_liga_data.pointsScored
 where player = '".$player."'
 	and playerPosition = '".$position."'
 union all
-select statPlayer, 'FA' as team, statYear, statWeek, statTeam, statPosition,
+select statPlayer,null as playerId, 'FA' as team, statYear, statWeek, statTeam, statPosition,
 '' as slot, null as points, totalPoints as otherPoints
 from scrapped_data.playerStats
 where statYear >= 2010 and statWeek <= 16

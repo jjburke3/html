@@ -44,7 +44,7 @@
 		<div id="nav-placeholder" class="sticky-top"></div>
 		<script src="javascript/navBar.js"></script>
 		<div id='bodyHeadDiv'>
-			<h1 id = 'playerTitle'></h1>
+			<h1 id = 'playerTitle' style="display:inline"></h1>
 		</div>
 		<div id="tooltip" class="hidden"></div>
 	</div>
@@ -58,24 +58,17 @@
 		document.title = player.split('_').join("'");
 		d3.select("#playerTitle").text(player.split('_').join("'"));
 		
-		var request = new XMLHttpRequest();
 
-		// Open a new connection, using the GET request on the URL endpoint
-		var playerQuery = player.split(' ').join('+').split('_').join("'");
-		request.open('GET', 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBKV7vpVLBhpggv_X041NSsxi2_JoJmsgo&cx=010003257524888520746:js_pte8i3r4&q='+playerQuery+'+nfl', true);
-		
-		request.onload = function () {
-		  var data = JSON.parse(this.response);
-			d3.select("#bodyHeadDiv").append("img")
-				.attr("src",data.items[0].pagemap.cse_image[0].src)
-				.style("height","200px")
-				.style("float","right");
-		  
-		  }
-		
-		request.send();
 		var dataPull = d3.json("php/player.php?player="+urlParams.get('player')+"&pos="+urlParams.get('position')).then(function(data) {
 			console.log(data);
+			var playerId = data[data.length-1]['playerId'];
+			console.log(playerId);
+			if(playerId > 0) {
+				d3.select("#bodyHeadDiv").append("img")
+					.attr("src","https://a.espncdn.com/i/headshots/nfl/players/full/3139477.png")
+					.style("height","150px")
+					.style("float","right");
+				}
 			var table = d3.select(".body-div")
 				.append("table")
 				.attr("class","table-bordered")
