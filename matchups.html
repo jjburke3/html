@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125711097-1"></script>
+	<script src="javascript/ga.js"></script>
+	<title>Matchups</title>
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/1.4.0/regression.min.js"></script>
+	<style>
+		.hidden {
+			display:none;
+			}
+			
+		 #tooltip {
+        position: absolute;
+        width: auto;
+        height: auto;
+        padding: 10px;
+		padding-left: 25px;
+        background-color: #E6DEDC;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+		opacity: .95;
+}
+	.bordered {
+		border: 2px solid black;
+		}
+	</style>
+</head>
+<body>
+	<div id="nav-placeholder" class="sticky-top"></div>
+	<script src="javascript/navBar.js"></script>
+	<h1>Head to Head Matchups</h1>
+	<table>
+		<thead>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<script>
+	var data = d3.json("php/matchups.php").then(function(data) {
+		var teams = d3.nest()
+			.key(function(d) {return d.winTeam;})
+			.entries(data);
+			
+		console.log(teams);
+		
+		var thead = d3.select("thead")
+			.append("tr");
+		thead.append("td");
+		thead.selectAll("th")
+			.data(teams)
+			.enter()
+			.append("th")
+			.text(function(d) {return d.key;});
+			
+		var bodyRows = d3.select("tbody")
+		.selectAll("tr")
+		.data(teams)
+		.enter().append("tr");
+		
+		bodyRows.append("td")
+			.style("font-weight","bold")
+			.text(function(d) {return d.key;});
+			
+		var cells = bodyRows.selectAll("td.noClass")
+			.data(teams)
+			.enter()
+			.append("td")
+			.text(function(d) {
+				var winTeam = d3.select(this.parentNode.firstChild).text();
+				var dataSet = data.filter(function(e) {
+					return e.winOpp == d.key && e.winTeam == winTeam;
+				});
+				return dataSet[0]?d3.format(".0%")(+dataSet[0]['winPct']):"";
+			})
+			.style("background-color",function(d) {
+				var winTeam = d3.select(this.parentNode.firstChild).text();
+				var dataSet = data.filter(function(e) {
+					return e.winOpp == d.key && e.winTeam == winTeam;
+				});
+				return dataSet[0]?d3.interpolateRdYlGn(+dataSet[0]['winPct']):"black";
+			
+			})
+			.on("mouseover",function(d) {
+				d3.select(this.parentNode).selectAll("*")
+					.classed("bordered",true);
+				d3.selectAll("tr")
+					.selectAll("*:nth-child("+(d3.select(this).property("cellIndex") + 1)+")")
+					.classed("bordered",true);
+			})
+			.on("mouseout",function(d) {
+				d3.selectAll("td, th")
+				.classed("bordered",false);
+				});
+			
+	
+	});
+	</script>
+</body>
+</html>
