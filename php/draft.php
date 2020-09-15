@@ -50,7 +50,7 @@ from la_liga_data.draftData a
 
 left join la_liga_data.keepers b on a.draftYear = b.draftYear and a.player = b.player and a.playerPosition = b.position
 left join scrapped_data.preRanks c on preYear = b.draftYear and prePlayer = b.player and prePosition = position
-where a.draftYear between 2010 and 2019
+where a.draftYear >= 2010
  
  ) draftData
 left join (select statYear, statPlayer, statPosition, 
