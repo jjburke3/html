@@ -1,5 +1,5 @@
 <?php
-include('credentials.php');
+include('../credentials.php');
 
 
 // Create connection
@@ -10,12 +10,9 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select 
-group_concat(distinct(draftYear)) as possibleYears,
-group_concat(distinct(draftRound)) as possibleRounds,
-group_concat(distinct(selectingTeam)) as possibleTeams
-from la_liga_data.draftData
-where draftYear > 2010
+select standYear, group_concat(distinct(standWeek)) as possibleWeeks
+from leagueSims.standings
+group by standYear
 ";
 
 

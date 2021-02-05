@@ -87,9 +87,9 @@
 		//League winner data
 		var colors = {'QB' : 'lightblue', 'RB' : 'pink', 'WR' : 'lightgreen', 'TE' : 'lemonchiffon', 'K' : 'orange', 'D/ST' : 'violet'}
 		
-		var d3Champs = d3.json("php/draftTable.php").then(function(data) {
+		var d3Champs = d3.json("php/draft/draftTable.php").then(function(data) {
 		
-		var selectSetup = d3.json("php/draftSetUp.php").then(function(setUp) {
+		var selectSetup = d3.json("php/draft/draftSetUp.php").then(function(setUp) {
 		
 			d3.select("#selectTeam")
 				.selectAll(".other")

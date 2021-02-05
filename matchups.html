@@ -35,6 +35,18 @@
 	.bordered {
 		border: 2px solid black;
 		}
+		
+	#overlay {
+		position: fixed;
+		left: 0px;
+		top: 0px;
+		width: 60%;
+		height: 90%;
+		margin: 5%;
+		padding: 20px;
+		border: 1px solid black;
+		background-color: white;
+	}
 	</style>
 </head>
 <body>
@@ -47,6 +59,34 @@
 		<tbody>
 		</tbody>
 	</table>
+	<div id="overlay" class="hidden" height="300px"; width="300px">
+		<button id="overlayClose" type="button" class="close" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<h3 id="overlayHead"></h1>
+		<table class="table-bordered">
+			<tr id="winsRow">
+				<td></td><td>Wins</td><td></td>
+			</tr>
+			<tr id="pointsRow">
+				<td></td><td>Average Points</td><td></td>
+			</tr>
+			<tr id="highestRow">
+				<td></td><td>Highest Score</td><td></td>
+			</tr>
+			<tr id="highestPlayerRow">
+				<td></td><td>Highest Player Score</td><td></td>
+			</tr>
+			<tr id="curStreakRow">
+				<td></td><td>Current Streak</td><td></td>
+			</tr>
+			<tr id="bestStreakRow">
+				<td></td><td>Best Streak</td><td></td>
+			</tr>
+			
+		</table>
+</button>
+	</div>
 	<script>
 	var data = d3.json("php/matchups.php").then(function(data) {
 		var teams = d3.nest()
@@ -77,6 +117,8 @@
 			.data(teams)
 			.enter()
 			.append("td")
+			.property("rowTeam",function(d) {return d3.select(this.parentNode.firstChild).text();})
+			.property("columnTeam",function(d) {return d.key;})
 			.text(function(d) {
 				var winTeam = d3.select(this.parentNode.firstChild).text();
 				var dataSet = data.filter(function(e) {
@@ -104,6 +146,42 @@
 				.classed("bordered",false);
 				});
 			
+	
+	});
+	
+	
+	var data = d3.json("php/matchupsOverlay.php").then(function(data) {
+		var streaksData = d3.json("php/matchupsOverlayStreaks.php").then(function(streaksData) {
+			d3.select("tbody").selectAll("td").on("click",function(d) {
+				var rowTeam = d3.select(this).property("rowTeam");
+				var columnTeam = d3.select(this).property("columnTeam");
+				var dataSubSet = data.filter(function(d) {return d.winTeam == rowTeam && d.winOpp == columnTeam;});
+				var streaksSubSet = streaksData.filter(function(d) {return d.winTeam == rowTeam && d.winOpp == columnTeam;});
+				var oppStreaksSubSet = streaksData.filter(function(d) {return d.winTeam == columnTeam && d.winOpp == rowTeam;});
+				d3.select("#overlay").classed("hidden",false);
+				var overHead = d3.select("#overlayHead")
+					.text(rowTeam + " vs " + columnTeam);
+				d3.select("#winsRow").select("td:nth-child(1)").text(dataSubSet[0]['wins']);
+				d3.select("#winsRow").select("td:nth-child(3)").text(dataSubSet[0]['oppWins']);
+				d3.select("#pointsRow").select("td:nth-child(1)").text(Math.round(+dataSubSet[0]['points']));
+				d3.select("#pointsRow").select("td:nth-child(3)").text(Math.round(+dataSubSet[0]['oppPoints']));
+				d3.select("#highestRow").select("td:nth-child(1)").text(dataSubSet[0]['maxPoints']);
+				d3.select("#highestRow").select("td:nth-child(3)").text(dataSubSet[0]['oppMaxPoints']);
+				d3.select("#curStreakRow").select("td:nth-child(1)").text(streaksSubSet[1]['winStreak']);
+				d3.select("#curStreakRow").select("td:nth-child(3)").text(oppStreaksSubSet[1]['winStreak']);
+				d3.select("#bestStreakRow").select("td:nth-child(1)").text(
+					streaksSubSet[0]['winStreak'] + " - " + streaksSubSet[0]['startWeek'] + " to " + streaksSubSet[0]['endWeek']
+				);
+				d3.select("#bestStreakRow").select("td:nth-child(3)").text(
+					oppStreaksSubSet[0]['winStreak'] + " - " + oppStreaksSubSet[0]['startWeek'] + " to " + oppStreaksSubSet[0]['endWeek']
+				);
+			});
+			
+			d3.select("#overlayClose")
+				.on("click",function(d) {
+				d3.select("#overlay").classed("hidden",true);
+			});
+		});
 	
 	});
 	</script>

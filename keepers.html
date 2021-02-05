@@ -22,7 +22,7 @@
 				<thead>
 					<tr>
 						<th>Team</th>
-						<th>Keeper Value Over Draft Slot (2019 Value)</th>
+						<th>Keeper Value Over Draft Slot (2020 Value)</th>
 						<th>Best Keeper Draft Year</th>
 						<th>Best Keeper Draft Pick</th>
 						<th>Best Keeper Player</th>
@@ -40,7 +40,7 @@
 	</div>
 	<script>
 		//League winner data
-		var d3Champs = d3.json("php/keepers.php").then(function(data) {
+		var d3Champs = d3.json("php/keepers/keepers.php").then(function(data) {
 			var trs = d3.select("#resultsTable").select("tbody")
 						.selectAll("tr")
 						.data(data)

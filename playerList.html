@@ -70,7 +70,7 @@
 			var positionSelect = d3.select("#positionSelect").property("value");
 
 	
-			var dataPull = d3.json("php/playerList.php?position=" + positionSelect).then(function(data) {
+			var dataPull = d3.json("php/players/playerList.php?position=" + positionSelect).then(function(data) {
 			
 							
 				d3.selectAll("th")
@@ -104,7 +104,7 @@
 						
 					rows.append("td")
 						.append("a")
-						.attr("href",function(d) {return "players.html?player=" + d.Player.split(' ').join('-')+"&position="+d.Position;})
+						.attr("href",function(d) {return "players.html?player=" + d.playerId +"&playerName=" +d.Player;})
 						.text(function(d) {return d.Player;});
 						
 					rows.append("td")

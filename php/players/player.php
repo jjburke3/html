@@ -1,5 +1,5 @@
 <?php
-include('credentials.php');
+include('../credentials.php');
 
 
 // Create connection
@@ -15,6 +15,7 @@ $position = $_GET['pos'];
 
 $sql = "
 select b.*,
+playerName as player,
 winWin, playoffs,
 winOpp,
 coalesce(concat(
@@ -39,25 +40,27 @@ else group_concat(distinct(slot)) end as bench,
 sum(points) as scoredPoints,
 sum(otherPoints) as faPoints
 from (
-select player, playerId, team, season, week, playerTeam, playerPosition, 
+select playerId as player, playerESPNId as playerId,
+playerTeam as team, playerSeason as season, playerWeek as week, playernflTeam as playerTeam, playerPosition, 
 case when playerSlot in ('Bench','IR') then 'Bench' else '' end as slot,
-points, null as otherPoints
+playerPoints as points, null as otherPoints
 
-from la_liga_data.pointsScored
-where player = '".$player."'
-	and playerPosition = '".$position."'
+from la_liga_data.playerPoints
+where playerId = ".$player."
 union all
-select statPlayer,null as playerId, 'FA' as team, statYear, statWeek, statTeam, statPosition,
+select statPlayer, null as playerId,
+'FA' as team, statYear, statWeek, statTeam, statPosition,
 '' as slot, null as points, totalPoints as otherPoints
-from scrapped_data.playerStats
+from scrapped_data2.playerStats
 where statYear >= 2010 and statWeek <= 16
-and statPlayer = '".$player."'
-	and statPosition = '".$position."') b
+and statPlayer = ".$player."
+) b
 group by player, season, week, playerPosition
 order by player, playerPosition, season, week) b
 left join la_liga_data.wins on winSeason = season and winWeek = week and winTeam = team
-left join la_liga_data.draftData d on draftYear = season and d.player = b.player and d.playerPosition = b.playerPosition
+left join la_liga_data.draftedPlayerData d on draftYear = season and d.player = b.player and d.playerPosition = b.playerPosition
 left join la_liga_data.keepers k on k.draftYear = season and k.player = b.player
+join refData.playerIds a on a.playerId = b.player
 ";
 
 

@@ -1,8 +1,9 @@
 <?php
-include('credentials.php');
+include('../credentials.php');
 
 
 // Create connection
+
 $conn = mysqli_connect($servername, $username, $password, $dbname);
 
 // Check connection
@@ -10,9 +11,16 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 $sql = "
-select standYear, group_concat(distinct(standWeek)) as possibleWeeks
-from analysis.standings
-group by standYear
+select 
+winSeason,
+winTeam,
+winOpp,
+winPoints,
+winPointsAgs
+ from la_liga_data.wins
+where playoffs = 'championship'
+	and winPoints >= winPointsAgs
+order by winSeason Desc
 ";
 
 

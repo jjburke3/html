@@ -88,7 +88,7 @@
 				
 		
 		
-		var d3Draft = d3.json("php/draft.php").then(function(data) {
+		var d3Draft = d3.json("php/draft/draft.php").then(function(data) {
 			
 			data.forEach(function(d) {
 				d.proRate = +d.pointsOverReplace*(16/+d.maxWeek)

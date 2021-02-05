@@ -1,5 +1,5 @@
 <?php
-include('credentials.php');
+include('../credentials.php');
 
 
 // Create connection
@@ -11,15 +11,11 @@ if (!$conn) {
 }
 $sql = "
 select 
-winSeason,
-winTeam,
-winOpp,
-winPoints,
-winPointsAgs
- from la_liga_data.wins
-where playoffs = 'championship'
-	and winPoints >= winPointsAgs
-order by winSeason Desc
+group_concat(distinct(draftYear)) as possibleYears,
+group_concat(distinct(draftRound)) as possibleRounds,
+group_concat(distinct(selectingTeam)) as possibleTeams
+from la_liga_data.draftedPlayerData
+where draftYear > 2010
 ";
 
 

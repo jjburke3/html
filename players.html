@@ -54,12 +54,12 @@
 			'#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']);
 			
 		var urlParams = new URLSearchParams(window.location.search);
-		var player = urlParams.get('player').split('-').join(' ');
+		var player = urlParams.get('playerName').split('-').join(' ');
 		document.title = player.split('_').join("'");
 		d3.select("#playerTitle").text(player.split('_').join("'"));
 		
 
-		var dataPull = d3.json("php/player.php?player="+urlParams.get('player')+"&pos="+urlParams.get('position')).then(function(data) {
+		var dataPull = d3.json("php/players/player.php?player="+urlParams.get('player')+"&pos="+urlParams.get('position')).then(function(data) {
 			console.log(data);
 			var playerId = data[data.length-1]['playerId'];
 			console.log(playerId);

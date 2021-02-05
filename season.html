@@ -28,7 +28,7 @@
 	</div>
 	<script>
 		//League winner data
-		var d3Champs = d3.json("php/season.php").then(function(data) {
+		var d3Champs = d3.json("php/results/season.php").then(function(data) {
 			var ths = d3.select("#resultsTable").select("thead")
 				.append("tr")
 				.selectAll("th")

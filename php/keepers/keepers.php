@@ -1,5 +1,5 @@
 <?php
-include('credentials.php');
+include('../credentials.php');
 
 
 // Create connection
@@ -16,20 +16,21 @@ select team, round(sum((ifnull(points,0) - replacePoints) - pickValue*
 ifnull(round(sum(case when draftYear = (select max(draftYear) from la_liga_data.keepers) then
 	(ifnull(points,0) - replacePoints) - pickValue*
 	((select max(week) from la_liga_data.pointsScored where draftYear = season and week < 17)/16) END),0),0) as currentYearValue,
-substring_index(group_concat(concat(draftYear,'_','Round: ',draftRound,', Pick: ',draftPick,'_',replace(player,'_',\"'\"),'_',round(ifnull(points,0),0))
+substring_index(group_concat(concat(draftYear,'_','Round: ',draftRound,', Pick: ',draftPick,'_',
+replace(playerName,'_',\"'\"),'_',round(ifnull(points,0),0))
 	order by (ifnull(points,0) - replacePoints) - pickValue*
 	((select max(week) from la_liga_data.pointsScored where draftYear = season and week < 17)/16) desc separator '|'),'|',1) as bestKeeper, 
-substring_index(group_concat(concat(draftYear,'_','Round: ',draftRound,', Pick: ',draftPick,'_',replace(player,'_',\"'\"),'_',round(ifnull(points,0),0))
+substring_index(group_concat(concat(draftYear,'_','Round: ',draftRound,', Pick: ',draftPick,'_',replace(playerName,'_',\"'\"),'_',round(ifnull(points,0),0))
 	 order by (ifnull(points,0) - replacePoints) - pickValue*
 	((select max(week) from la_liga_data.pointsScored where draftYear = season and week < 17)/16) asc separator '|'),'|',1) as worstKeeper
 from la_liga_data.keepers
 left join refData.pickValue pick1 on draftPick = pick1.pickNumber
 left join (select statYear, statPlayer, statPosition, sum(totalPoints) as points
-from scrapped_data.playerStats
+from scrapped_data2.playerStats
 where statWeek < 17
 group by 1,2,3) b on statYear = draftYear and statPlayer = player and statPosition = position
+join refData.playerIds on player = playerId
 left join analysis.replacementValue on replaceYear = draftYear and replacePosition = position
-where draftYear <= 2019
 group by 1
 order by 2 desc;
 
