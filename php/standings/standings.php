@@ -25,7 +25,9 @@ concat(b.highPointsOdds,case when a.highPointsOdds is not null then concat(' (',
 concat(b.byeOdds,case when a.byeOdds is not null then concat(' (',b.byeOdds-a.byeOdds,')') else '' end) as 'Bye Odds',
 concat(b.lowPointsOdds,case when a.lowPointsOdds is not null then concat(' (',b.lowPointsOdds-a.lowPointsOdds,')') else '' end) as 'Low Points Odds',
 concat(b.exWeeklyHighPoints,case when a.exWeeklyHighPoints is not null then concat(' (',b.exWeeklyHighPoints-a.exWeeklyHighPoints,')') else '' end) as 'Ex. Weekly High Points',
-concat(b.exPayouts,case when a.exPayouts is not null then concat(' (',b.exPayouts-a.exPayouts,')') else '' end) as 'Ex. Payouts'
+concat(b.exPayouts,case when a.exPayouts is not null then concat(' (',b.exPayouts-a.exPayouts,')') else '' end) as 'Ex. Payouts',
+standRunCount,
+updateTime
 from (
 select standTeam as Team,
 winWin as Wins, 
@@ -48,7 +50,9 @@ round((standChamp/standRunCount)*champPayout +
     (standFirstPlace/standRunCount)*regChampPayout +
     (standHighPoints/standRunCount)*highPointsPayout + 
     (standWeeklyHighPoints/standRunCount)*weeklyHighPointsPayout,2)
-    as exPayouts
+    as exPayouts,
+standRunCount,
+updateTime
 from leagueSims.standings
 join (select payYear, 
 	avg(case when payRule = '1st Place Finish' then payAmount end) as champPayout, 

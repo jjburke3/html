@@ -29,6 +29,7 @@
 			</select>
 			<button id="tableButton" type="button" class="btn btn-primary">Table</button>
 			<button id="graphButton" type="button" class="btn btn-outline-primary">Graph</button>
+			<span id="simInfo">0 Simulations Run, Updated on 0000-00-00 00:00:00</span>
 		</div>
 		<div class="table-container">
 			<table id="standTable" class='table table-hover table-striped'>
@@ -153,7 +154,7 @@
 				var ths = d3.select("#standTable").select("thead")
 					.append("tr")
 					.selectAll("th")
-					.data(d3.keys(data[0]))
+					.data(d3.keys(data[0]).filter(function(d) {return d != "updateTime" && d != "standRunCount";}))
 					.enter()
 					.append("th")
 						.text(function(d) {return d;})
