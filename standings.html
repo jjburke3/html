@@ -151,6 +151,8 @@
 			var d3Champs = d3.json("php/standings/standings.php?year="+selectYear+"&week="+selectWeek).then(function(data) {
 				d3.select("#standTable").select("thead").selectAll("*").remove();
 				d3.select("#standTable").select("tbody").selectAll("*").remove();
+				var updateTime = new Date(data[0]['updateTime']+ " UTC");
+				d3.select("#simInfo").text(data[0]['standRunCount'] + " Simulations Run, Updated on ")
 				var ths = d3.select("#standTable").select("thead")
 					.append("tr")
 					.selectAll("th")
@@ -208,7 +210,7 @@
 								.append("tr");
 							
 							trs.selectAll("td")
-								.data(function(d) {return d3.values(d);})
+								.data(function(d) {return d3.values(d)[0:15];})
 								.enter()
 								.append("td")
 								.text(function(d) {return d;});
