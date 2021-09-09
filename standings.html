@@ -152,7 +152,7 @@
 				d3.select("#standTable").select("thead").selectAll("*").remove();
 				d3.select("#standTable").select("tbody").selectAll("*").remove();
 				var updateTime = new Date(data[0]['updateTime']+ " UTC");
-				d3.select("#simInfo").text(data[0]['standRunCount'] + " Simulations Run, Updated on ")
+				d3.select("#simInfo").text("  " + data[0]['standRunCount'] + " Simulations Run, Updated on " + updateTime)
 				var ths = d3.select("#standTable").select("thead")
 					.append("tr")
 					.selectAll("th")
@@ -222,7 +222,7 @@
 							.append("tr");
 				
 				trs.selectAll("td")
-					.data(function(d) {return d3.values(d);})
+					.data(function(d) {return d3.values(d).slice(0,-2);})
 					.enter()
 					.append("td")
 					.text(function(d) {return d;});
