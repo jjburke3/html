@@ -228,7 +228,7 @@
 					.append("td")
 					.text(function(d) {return d;});
 			});
-			if(isMobile){
+			if(!isMobile){
 				var d3Graph = d3.json("php/standings/standingsGraph.php?year="+selectYear+"&week="+selectWeek).then(function(data) {
 				
 					d3.select("#graphSelect").on("change",doGraph);
