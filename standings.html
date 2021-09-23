@@ -60,6 +60,7 @@
 	</div>
 	<script>
 		//League winner data
+		var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 		var columnSorted = 'Playoffs Odds';
 		var divSize = {'height' : 500, 'width' : 1000}
 		var margins ={'top' : 20,
@@ -227,144 +228,145 @@
 					.append("td")
 					.text(function(d) {return d;});
 			});
-			
-			var d3Graph = d3.json("php/standings/standingsGraph.php?year="+selectYear+"&week="+selectWeek).then(function(data) {
-			
-				d3.select("#graphSelect").on("change",doGraph);
+			if(isMobile){
+				var d3Graph = d3.json("php/standings/standingsGraph.php?year="+selectYear+"&week="+selectWeek).then(function(data) {
 				
-				doGraph();
-				
-				function doGraph() {
-					var selectGraph = d3.select("#graphSelect").property("value");
-					var svgGraph = d3.select("svg").select("g")
+					d3.select("#graphSelect").on("change",doGraph);
 					
-					var data2 = data.filter(function(d) {return +d.standWeek > 0 || selectGraph != 'pointAverage';});
-					var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#C0C0C0', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']);
-					svgGraph.selectAll("*").remove();
+					doGraph();
 					
-					var xScale = d3.scalePoint()
-						.range([0, divSize.width])
-						.domain(data2.map(function(d) {return d.standWeek;}))
-						.padding(.1);
+					function doGraph() {
+						var selectGraph = d3.select("#graphSelect").property("value");
+						var svgGraph = d3.select("svg").select("g")
 						
-					var yScale = d3.scaleLinear()
-						.range([divSize.height,0])
-						.domain([d3.min(data2,function(d) {
-							if(selectGraph == 'exPointAverage') {
-								return d3.min(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
-							} else if(selectGraph == 'exRemainPointAverage') {
-								return +d[selectGraph];
-							} else {return 0;}
-						}),
-							d3.max(data2, function(d) {
-							if(selectGraph == 'exPointAverage') {
-								return d3.max(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
-							} else if(selectGraph == 'exWins') {
-								return d3.max(d['exWinsArray'].split(","),function(d) {return +d;});
-							} else {return +d[selectGraph]};
-							})]);
+						var data2 = data.filter(function(d) {return +d.standWeek > 0 || selectGraph != 'pointAverage';});
+						var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#C0C0C0', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']);
+						svgGraph.selectAll("*").remove();
 						
-						
-					var xAxis = d3.axisBottom()
-						.scale(xScale);
-						
-					var yAxis = d3.axisLeft()
-						.scale(yScale);
-						
-					svgGraph.append("g")
-						.call(xAxis)
-						.attr("transform","translate(0,"+divSize.height+")");
-						
-					svgGraph.append("g")
-						.call(yAxis);
-						
-						
-					var valueline = d3.line()
-						.curve(d3.curveLinear)
-						.x(function(d) {
-						 return xScale(d.standWeek); })
-						.y(function(d) { if(selectGraph == 'pointAverage') {
-						return yScale(+d.pointsScored/(+d.wins+(+d.losses)+(+d.tie)));}
-							else if (selectGraph == 'exPointAverage')
-								{return yScale(+d.exPointAverage);}
-						else {
-						return yScale(+d[selectGraph]);
-						} });
-						
-						
-						
-					var playerData = d3.nest()
-						.key(function(d) {return d.Team;})
-						.entries(data2);
-						
-					var dataPath = playerData.forEach(function(d, i) {
+						var xScale = d3.scalePoint()
+							.range([0, divSize.width])
+							.domain(data2.map(function(d) {return d.standWeek;}))
+							.padding(.1);
 							
-					if(['exPointAverage','exWins'].includes(selectGraph)) {
-						if (selectGraph == 'exWins') {
-							adjFactor = 1;
-						}else {adjFactor = 13;}
-						svgGraph.append("path")
-								.datum(d.values.sort(function(a,b) {
-							return d3.ascending(+a.standWeek, +b.standWeek);
-							}))
-								.attr("class",d.key+" ci_line")
-								.classed('hidden',true)
-							  .attr("fill", color(d.key))
-							  .style("opacity",.5)
-							  .attr("stroke", "none")
-							  .attr("d", d3.area()
-								.x(function(d) { return xScale(d.standWeek) })
-								.y0(function(d) {
-							var sorted = d[selectGraph+'Array'].split(",").sort(function(a,b) {return d3.ascending(+a,+b);}); return yScale(d3.quantile(sorted,.025)/adjFactor) })
-								.y1(function(d) {
-							var sorted = d[selectGraph+'Array'].split(",").sort(function(a,b) {return d3.ascending(+a,+b);}); return yScale(d3.quantile(sorted,.975)/adjFactor) })
-								)
-					}
-						svgGraph
-							.append("path")
-							.attr("class", d.key + " graph_line")
-						.attr("id", d.key)
-						.style("stroke",color(d.key))
-						.style("stroke-width","2px")
-						.style("fill","none")
-						.attr("d", valueline(d.values.sort(function(a,b) {
-							return d3.ascending(+a.standWeek, +b.standWeek);
-							})))
-						.append("title")
-							.html(d.key);
+						var yScale = d3.scaleLinear()
+							.range([divSize.height,0])
+							.domain([d3.min(data2,function(d) {
+								if(selectGraph == 'exPointAverage') {
+									return d3.min(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
+								} else if(selectGraph == 'exRemainPointAverage') {
+									return +d[selectGraph];
+								} else {return 0;}
+							}),
+								d3.max(data2, function(d) {
+								if(selectGraph == 'exPointAverage') {
+									return d3.max(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
+								} else if(selectGraph == 'exWins') {
+									return d3.max(d['exWinsArray'].split(","),function(d) {return +d;});
+								} else {return +d[selectGraph]};
+								})]);
 							
-						d3.select("#legend")
-							.append("text")
-							.attr("x",100)
-							.attr("y",  (1 + i) * (divSize.height/playerData.length))
-							.text(d.key)
-							.style("fill",color(d.key))
-							.style("text-anchor","middle")
-							.on("mouseover",function(d) {
-								var selected = d3.select(this).text();
-								d3.selectAll(".graph_line")
-									.attr("opacity",.5)
-									.style("stroke-width","1px");
-								d3.selectAll(".graph_line."+selected.split(" ").join("."))
-									.attr("opacity",1)
-									.style("stroke-width","4px");
-								d3.selectAll("."+selected.split(" ").join(".")+".ci_line")
-									.classed("hidden",false);
-							})
-							.on("mouseout", function(d) {
-								d3.selectAll(".graph_line")
-									.attr("opacity",1)
-									.style("stroke-width","2px");
-								d3.selectAll(".ci_line")
-									.classed("hidden",true);
 							
-							});
-						
-					})
+						var xAxis = d3.axisBottom()
+							.scale(xScale);
+							
+						var yAxis = d3.axisLeft()
+							.scale(yScale);
+							
+						svgGraph.append("g")
+							.call(xAxis)
+							.attr("transform","translate(0,"+divSize.height+")");
+							
+						svgGraph.append("g")
+							.call(yAxis);
+							
+							
+						var valueline = d3.line()
+							.curve(d3.curveLinear)
+							.x(function(d) {
+							 return xScale(d.standWeek); })
+							.y(function(d) { if(selectGraph == 'pointAverage') {
+							return yScale(+d.pointsScored/(+d.wins+(+d.losses)+(+d.tie)));}
+								else if (selectGraph == 'exPointAverage')
+									{return yScale(+d.exPointAverage);}
+							else {
+							return yScale(+d[selectGraph]);
+							} });
+							
+							
+							
+						var playerData = d3.nest()
+							.key(function(d) {return d.Team;})
+							.entries(data2);
+							
+						var dataPath = playerData.forEach(function(d, i) {
+								
+						if(['exPointAverage','exWins'].includes(selectGraph)) {
+							if (selectGraph == 'exWins') {
+								adjFactor = 1;
+							}else {adjFactor = 13;}
+							svgGraph.append("path")
+									.datum(d.values.sort(function(a,b) {
+								return d3.ascending(+a.standWeek, +b.standWeek);
+								}))
+									.attr("class",d.key+" ci_line")
+									.classed('hidden',true)
+								  .attr("fill", color(d.key))
+								  .style("opacity",.5)
+								  .attr("stroke", "none")
+								  .attr("d", d3.area()
+									.x(function(d) { return xScale(d.standWeek) })
+									.y0(function(d) {
+								var sorted = d[selectGraph+'Array'].split(",").sort(function(a,b) {return d3.ascending(+a,+b);}); return yScale(d3.quantile(sorted,.025)/adjFactor) })
+									.y1(function(d) {
+								var sorted = d[selectGraph+'Array'].split(",").sort(function(a,b) {return d3.ascending(+a,+b);}); return yScale(d3.quantile(sorted,.975)/adjFactor) })
+									)
+						}
+							svgGraph
+								.append("path")
+								.attr("class", d.key + " graph_line")
+							.attr("id", d.key)
+							.style("stroke",color(d.key))
+							.style("stroke-width","2px")
+							.style("fill","none")
+							.attr("d", valueline(d.values.sort(function(a,b) {
+								return d3.ascending(+a.standWeek, +b.standWeek);
+								})))
+							.append("title")
+								.html(d.key);
+								
+							d3.select("#legend")
+								.append("text")
+								.attr("x",100)
+								.attr("y",  (1 + i) * (divSize.height/playerData.length))
+								.text(d.key)
+								.style("fill",color(d.key))
+								.style("text-anchor","middle")
+								.on("mouseover",function(d) {
+									var selected = d3.select(this).text();
+									d3.selectAll(".graph_line")
+										.attr("opacity",.5)
+										.style("stroke-width","1px");
+									d3.selectAll(".graph_line."+selected.split(" ").join("."))
+										.attr("opacity",1)
+										.style("stroke-width","4px");
+									d3.selectAll("."+selected.split(" ").join(".")+".ci_line")
+										.classed("hidden",false);
+								})
+								.on("mouseout", function(d) {
+									d3.selectAll(".graph_line")
+										.attr("opacity",1)
+										.style("stroke-width","2px");
+									d3.selectAll(".ci_line")
+										.classed("hidden",true);
+								
+								});
+							
+						})
 
-				
-				}
-			});
+					
+					}
+				});
+			}
 		}
 		
 		});
