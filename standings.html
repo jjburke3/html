@@ -238,7 +238,7 @@
 					function doGraph() {
 						var selectGraph = d3.select("#graphSelect").property("value");
 						var svgGraph = d3.select("svg").select("g")
-						
+						var weekAdj = (selectYear>2020)?14:13;
 						var data2 = data.filter(function(d) {return +d.standWeek > 0 || selectGraph != 'pointAverage';});
 						var color = d3.scaleOrdinal(['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#C0C0C0', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']);
 						svgGraph.selectAll("*").remove();
@@ -252,14 +252,14 @@
 							.range([divSize.height,0])
 							.domain([d3.min(data2,function(d) {
 								if(selectGraph == 'exPointAverage') {
-									return d3.min(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
+									return d3.min(d['exPointAverageArray'].split(","),function(d) {return +d/weekAdj;});
 								} else if(selectGraph == 'exRemainPointAverage') {
 									return +d[selectGraph];
 								} else {return 0;}
 							}),
 								d3.max(data2, function(d) {
 								if(selectGraph == 'exPointAverage') {
-									return d3.max(d['exPointAverageArray'].split(","),function(d) {return +d/13;});
+									return d3.max(d['exPointAverageArray'].split(","),function(d) {return +d/weekAdj;});
 								} else if(selectGraph == 'exWins') {
 									return d3.max(d['exWinsArray'].split(","),function(d) {return +d;});
 								} else {return +d[selectGraph]};
@@ -303,7 +303,7 @@
 						if(['exPointAverage','exWins'].includes(selectGraph)) {
 							if (selectGraph == 'exWins') {
 								adjFactor = 1;
-							}else {adjFactor = 13;}
+							}else {adjFactor = weekAdj;}
 							svgGraph.append("path")
 									.datum(d.values.sort(function(a,b) {
 								return d3.ascending(+a.standWeek, +b.standWeek);
