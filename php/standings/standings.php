@@ -66,7 +66,7 @@ join (select payYear,
 left join (select winTeam, round(sum(winPoints),1) as winPoints, sum(winWin) as winWin, sum(winLoss) as winLoss,
 	round(sum(winPoints)/count(*),1) as pointsAvg
 	from la_liga_data.wins 
-	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." and winWeek <= case when standYear > 2020 then 14 else 13 end
+	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." and winWeek <= case when winSeason > 2020 then 14 else 13 end
 	group by 1) a on winTeam = standTeam
 where standYear = ".$_GET['year']." and standWeek = ".$_GET['week']."
 ) b
@@ -106,7 +106,7 @@ join (select payYear,
 left join (select winTeam, round(sum(winPoints),1) as winPoints, sum(winWin) as winWin, sum(winLoss) as winLoss,
 	round(sum(winPoints)/count(*),1) as pointsAvg
 	from la_liga_data.wins 
-	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." - 1 and winWeek <= case when standYear > 2020 then 14 else 13 end
+	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." - 1 and winWeek <= case when winSeason > 2020 then 14 else 13 end
 	group by 1) a on winTeam = standTeam
 where standYear = ".$_GET['year']." and standWeek = ".$_GET['week']." - 1
 ) a on a.Team = b.Team
