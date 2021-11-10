@@ -34,8 +34,9 @@ winWin as Wins,
 winLoss as Losses, 
 winPoints as Points, 
 pointsAvg,
-round(standPoints/(standRunCount*13),1) as exPointsAvg,
-round(standPointsRemain/(standRunCount*(least(16,17-".$_GET['week']."))),1) as standPointsRemain,
+round(standPoints/(standRunCount*case when standYear > 2020 then 14 else 13 end),1) as exPointsAvg,
+round(standPointsRemain/(standRunCount*(least(case when standYear > 2020 then 17 else 16 end,
+	case when standYear > 2020 then 18 else 17 end-".$_GET['week']."))),1) as standPointsRemain,
 round(standWins/standRunCount,2) as exWins,
 round(standPlayoffs/standRunCount,2) as playoffsOdds,
 round(standChamp/standRunCount,2) as champOdds,
@@ -65,7 +66,7 @@ join (select payYear,
 left join (select winTeam, round(sum(winPoints),1) as winPoints, sum(winWin) as winWin, sum(winLoss) as winLoss,
 	round(sum(winPoints)/count(*),1) as pointsAvg
 	from la_liga_data.wins 
-	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." and winWeek <= 13
+	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." and winWeek <= case when standYear > 2020 then 14 else 13 end
 	group by 1) a on winTeam = standTeam
 where standYear = ".$_GET['year']." and standWeek = ".$_GET['week']."
 ) b
@@ -75,8 +76,9 @@ winWin as Wins,
 winLoss as Losses, 
 winPoints as Points, 
 pointsAvg,
-round(standPoints/(13*standRunCount),1) as exPointsAvg,
-round(standPointsRemain/(standRunCount*(least(16,18-".$_GET['week']."))),1) as standPointsRemain,
+round(standPoints/(case when standYear > 2020 then 14 else 13 end*standRunCount),1) as exPointsAvg,
+round(standPointsRemain/(standRunCount*(least(case when standYear > 2020 then 17 else 16 end,
+	case when standYear > 2020 then 18 else 17 end-".$_GET['week']."))),1) as standPointsRemain,
 round(standWins/standRunCount,2) as exWins,
 round(standPlayoffs/standRunCount,2) as playoffsOdds,
 round(standChamp/standRunCount,2) as champOdds,
@@ -104,7 +106,7 @@ join (select payYear,
 left join (select winTeam, round(sum(winPoints),1) as winPoints, sum(winWin) as winWin, sum(winLoss) as winLoss,
 	round(sum(winPoints)/count(*),1) as pointsAvg
 	from la_liga_data.wins 
-	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." - 1 and winWeek <= 13
+	where winSeason = ".$_GET['year']." and winWeek < ".$_GET['week']." - 1 and winWeek <= case when standYear > 2020 then 14 else 13 end
 	group by 1) a on winTeam = standTeam
 where standYear = ".$_GET['year']." and standWeek = ".$_GET['week']." - 1
 ) a on a.Team = b.Team
