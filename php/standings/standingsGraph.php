@@ -42,12 +42,6 @@ round(standHighPoints/standRunCount,2) as highpoints,
 round(standLowPoints/standRunCount,2) as lowPoints, 
 round(standFirstPlace/standRunCount,2) as firstplace, 
 round(standBye/standRunCount,2) as bye,
-round((standChamp/standRunCount)*champPayout +
-	(standRunnerUp/standRunCount)*runnerupPayout +
-    (standThirdPlace/standRunCount)*thirdPlacePayout +
-    (standFirstPlace/standRunCount)*regChampPayout +
-    (standHighPoints/standRunCount)*highPointsPayout + 
-    (standWeeklyHighPoints/standRunCount)*weeklyHighPointsPayout,2) as exMoney,
 standWinsArray as exWinsArray,
 standPointsArray as exPointAverageArray
 from leagueSims.standings
